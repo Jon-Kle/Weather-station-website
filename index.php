@@ -12,7 +12,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 	<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
 	<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="js/spin.min.js"></script>
-	<script type="text/javascript" <?php if (!$langBool) { ?>src="js/getColumnInfo.js" <?php } else { ?>src="de/js/getColumnInfo.js" <?php } ?>></script>
+	<script type="text/javascript" src="js/getColumnInfo.js"></script>
 	<script type="text/javascript" src="js/chart_min.js"></script>
 	<script type="text/javascript" src="js/moment.min.js"></script>
 	<script type="text/javascript" src="js/combodate.js"></script>
@@ -54,15 +54,6 @@ JQuery documentation: https://api.jquery.com/jQuery/
 		//this is a jquery thing: https://learn.jquery.com/using-jquery-core/document-ready/
 		$(document).ready(function () {
 
-			// read the json file
-			var data;
-			fetch("./conf/options.json")
-				.then(response => response.json())
-				.then(data => console.log(data, typeof data))
-			//insert option list
-
-			//modify language
-
 			//correct the appearance of the links on the left side
 			resizeLinks();
 			//when hovering over control panel, change positioning of table to fixed
@@ -74,19 +65,6 @@ JQuery documentation: https://api.jquery.com/jQuery/
 					$("#table").css("position", "inherit");
 				}
 			);
-			//each() gets every element defined by the search parameters and applies the given function to it.
-			//it is nearly identical to the map() function in python
-			//styled-select are all the selection boxes in the control panel
-			//columns0 is associated with the left value scale for the graph //all of this is just for the german alternative, a lazy solutionf
-			$.each(document.querySelectorAll('.styled-select select[name="columns0"] option'), function (index, value) {
-				//innerHTML is the actual content of the element e.g. <div>this is the actual content<\div>
-				//getName is a function from getColumnInfo.js
-				value.innerHTML = getName(value.value); //this is possibly obsolete, when the language switching is done
-			});
-			//columns1 is associated with the right value scale for the table (the second selected value to display)
-			$.each(document.querySelectorAll('.styled-select select[name="columns1"] option'), function (index, value) {
-				value.innerHTML = getName(value.value);
-			});
 			// this includes all elements of the class "select-toggle"
 			$('.select-toggle').each(function () {
 				//the context is a JQuery object, that includes the calling instance which is defied by class="select-toggle"
@@ -106,7 +84,6 @@ JQuery documentation: https://api.jquery.com/jQuery/
 					});
 				});
 			});
-
 			//action of left double-arrow
 			$("#timeline .a0").click(function () {
 				changeDate(0, -4);
@@ -215,7 +192,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 							//get the text content of the response
 							var resultString = requestVar.responseText;
 
-							console.log("resultString:", resultString); //fehlende Exception!
+							// console.log("resultString:", resultString); //fehlende Exception!
 
 							//split the content from the database into smaller chunks
 							var bigResultArray = resultString.split("$");
@@ -241,7 +218,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 					requestVar.open('POST', 'php/getStringData.php');
 					requestVar.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-					console.log("requestVar:", requestVar)
+					// console.log("requestVar:", requestVar)
 					//send the request with the parameters for the php script as body
 					if (columnsVar1 == "none" || columnsVar1 == "undefined") {
 						requestVar.send("columns0=" + columnsVar0 + "&columns1=" + '' + "&dateInput=" + dateInputVar + "&interval=" + intervalVar);
@@ -306,7 +283,6 @@ JQuery documentation: https://api.jquery.com/jQuery/
 		}
 		//add spinner and update the content with a timeout in milliseconds
 		function onAnyChange(time) {
-			console.log("test", getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value, ["1", "0.8", "0.75", "0.5"]));
 			//add a spinner to the content panel
 			var target = document.getElementById('content');
 			if (changed < 1) {
@@ -315,7 +291,8 @@ JQuery documentation: https://api.jquery.com/jQuery/
 			//this prohibits updateContent from being called if the last timeout has not finished yet
 			changed++;
 			//this is setting a delay which is purely cosmetic and could be removed
-			setTimeout(function () { changed--; if (changed == 0) { updateContent(); } }, time);
+			// setTimeout(function () { changed--; if (changed == 0) { updateContent(); } }, time);
+			updateContent();
 		}
 		//correct the vertical placement of the links on the left side
 		function resizeLinks() {
@@ -463,8 +440,8 @@ JQuery documentation: https://api.jquery.com/jQuery/
 				//this is very similar to the other option
 				var columnsValue0 = document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value;
 				var columnsValue1 = document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect1')[0].value;
-				var colors0 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value, ["1", "0.2"]);
-				var colors1 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect1')[0].value, ["1", "0.2"]);
+				var colors0 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value, ['1', '0.2']);
+				var colors1 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect1')[0].value, ['1', '0.2']);
 				var barChartData = {
 					labels: dateArraySet,
 					datasets: [
@@ -540,56 +517,24 @@ JQuery documentation: https://api.jquery.com/jQuery/
 						<div class="styled-select">
 							<label>Select one measurement</label>
 							<select class="columnsSelect0" name="columns0" onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="styled-select">
 							<label>Select the second one</label>
 							<select class="columnsSelect1" name="columns1" onChange="onAnyChange(4000)">
 								<option value="none">None</option>
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="legendOuter">
@@ -626,56 +571,26 @@ JQuery documentation: https://api.jquery.com/jQuery/
 						<div class="styled-select">
 							<label>Select one measurement</label>
 							<select class="columnsSelect0" name="columns0" onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
+								<option value="winddir">Wind direction</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="styled-select">
 							<label>Select the second one</label>
 							<select class="columnsSelect1" name="columns1" onChange="onAnyChange(4000)">
 								<option value="none">None</option>
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
+								<option value="winddir">Wind direction</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="legendOuter">
@@ -709,31 +624,13 @@ JQuery documentation: https://api.jquery.com/jQuery/
 							<label>Select all measurements</label>
 							<select class="select-toggle columnsSelect" name="columns0" multiple="multiple"
 								onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
 								<option value="winddir">Wind direction</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="hidir">Direction of highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="thswindex">Temp.\dampness\sun\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 					</div>
@@ -755,7 +652,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 				<div class="inner i0"></div>
 				<div class="inner i1"></div>
 				<div class="inner t0"><input type="text" onChange="changeDate(2,0)" data-format="YYYY-MM-DD"
-						data-template="D MMM YYYY" name="date" value="2015-04-24"></input></div>
+						data-template="D MMM YYYY" name="date" value="2012-07-09"></input></div>
 			</div>
 			<div class="a3 inner right"></div>
 			<div class="a2 inner right"></div>
