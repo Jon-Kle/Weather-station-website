@@ -109,7 +109,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 				changeDate(1, 1);
 			});
 			//action of the date selection element
-			$("#timeline .t0 input").combodate({ minYear: 2014, firstItem: 'none', errorClass: '#timeline .t0' });
+			$("#timeline .t0 input").combodate({ minYear: 2012, maxYear: 2023, firstItem: 'none', errorClass: '#timeline .t0' });
 		});
 		//make sure, the links are positioned properly when the window is resized
 		window.onresize = function (event) {
@@ -433,7 +433,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 					responsive: true,
 					legendTemplate: "<h1>Legend:</h1><ul class=\"legend\"><li style=\"color:" + colors0[0] + "\"><span>" + getName(columnsValue0) + " (" + getUnit(columnsValue0) + ")</span></li></ul>",
 					bezierCurve: false,
-					scaleShowGridLines: false
+					scaleShowGridLines: false,
 				});
 			} else {
 				//if there are two values to be displayed
