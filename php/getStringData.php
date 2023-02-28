@@ -15,7 +15,6 @@ $mode = array($mode0);
 if ($mode1 != "") {
 	array_push($mode, $mode1);
 }
-
 $datapackage = getData($mode, $dayBegin, $dayEnd, $interval);
 if ($datapackage == false) {
 
@@ -23,7 +22,6 @@ if ($datapackage == false) {
 	$dateArray = $datapackage[0];
 	$firstArray = $datapackage[1];
 	$countnum = 0;
-	//$valCheck = "0000-00-00";
 	foreach ($dateArray as &$value) {
 		if ($countnum != 0) {
 			echo "|";

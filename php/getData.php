@@ -2,11 +2,13 @@
 function getData($mode, $dayBegin, $dayEnd, $interval) {
 	// Connecting to database
 	// this has to be read from a file!!!
-	$host = ""; //connected via docker network wetter-website
-	$username = "";
-	$password = "";
-	$dbname = "";
-	$port = 3306;
+	$databaseFileContent = file_get_contents("../conf/database.json");
+	$loginData = json_decode($databaseFileContent, true)["mysqlConnection"];
+	$host = $loginData["host"]; //connected via docker network wetter-website
+	$username = $loginData["username"];
+	$password = $loginData["password"];
+	$dbname = $loginData["database"];
+	$port = $loginData["port"];
 	$sql_qu_base = "SELECT DATE_FORMAT(entryDate,'%H:%i %a, %d.%b %Y') AS entryDate, ";
 	# this is probably not necessary anymore
 	$highestValueAry = array("hitemp","hispeed","hisolarrad","hiuv");
@@ -17,7 +19,7 @@ function getData($mode, $dayBegin, $dayEnd, $interval) {
 
 	// Create and check connection
 	$conn = mysqli_connect($host, $username, $password, $dbname, $port);
-	//die("Connection failed: " . mysqli_connect_error($conn));
+	// die("Connection failed: " . mysqli_connect_error($conn));
 	
 	
 	if (in_array("hidir", $mode)) {

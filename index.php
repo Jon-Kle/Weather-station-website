@@ -1,30 +1,8 @@
 <!DOCTYPE HTML>
-
 <!--
 useful links:
 JQuery documentation: https://api.jquery.com/jQuery/	
 -->
-<?php
-$lang = $_SERVER['REQUEST_URI'];
-if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
-	# this takes the request URI and sends a header that has a unified format
-	$host = $_SERVER['HTTP_HOST'];
-	$uri = rtrim(dirname($_SERVER['PHP_SELF']), '/\\');
-	$extra = 'index.php/de';
-	header("Location: http://$host$uri/$extra");
-	exit;
-} else {
-	# if the request URI is not handled by the code above
-	# it sets the variable langBool, that affects, if the german version gets used
-	# this code is a bit weird, because the boolean variable is false, even if it is not defined.
-	# might need a redesign, but only when it can be tested
-	if ($lang == '/weatherstation/index.php/de') {
-		$langBool = true;
-	} else {
-		$langBool = false;
-	}
-}
-?>
 <html>
 
 <head>
@@ -34,7 +12,7 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 	<link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
 	<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="js/spin.min.js"></script>
-	<script type="text/javascript" <?php if (!$langBool) { ?>src="js/getColumnInfo.js" <?php } else { ?>src="de/js/getColumnInfo.js" <?php } ?>></script>
+	<script type="text/javascript" src="js/getColumnInfo.js"></script>
 	<script type="text/javascript" src="js/chart_min.js"></script>
 	<script type="text/javascript" src="js/moment.min.js"></script>
 	<script type="text/javascript" src="js/combodate.js"></script>
@@ -76,15 +54,6 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 		//this is a jquery thing: https://learn.jquery.com/using-jquery-core/document-ready/
 		$(document).ready(function () {
 
-			// read the json file
-			var data;
-			fetch("./conf/options.json")
-				.then(response => response.json())
-				.then(data => console.log(data, typeof data))
-			//insert option list
-
-			//modify language
-
 			//correct the appearance of the links on the left side
 			resizeLinks();
 			//when hovering over control panel, change positioning of table to fixed
@@ -96,19 +65,6 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 					$("#table").css("position", "inherit");
 				}
 			);
-			//each() gets every element defined by the search parameters and applies the given function to it.
-			//it is nearly identical to the map() function in python
-			//styled-select are all the selection boxes in the control panel
-			//columns0 is associated with the left value scale for the graph //all of this is just for the german alternative, a lazy solutionf
-			$.each(document.querySelectorAll('.styled-select select[name="columns0"] option'), function (index, value) {
-				//innerHTML is the actual content of the element e.g. <div>this is the actual content<\div>
-				//getName is a function from getColumnInfo.js
-				value.innerHTML = getName(value.value); //this is possibly obsolete, when the language switching is done
-			});
-			//columns1 is associated with the right value scale for the table (the second selected value to display)
-			$.each(document.querySelectorAll('.styled-select select[name="columns1"] option'), function (index, value) {
-				value.innerHTML = getName(value.value);
-			});
 			// this includes all elements of the class "select-toggle"
 			$('.select-toggle').each(function () {
 				//the context is a JQuery object, that includes the calling instance which is defied by class="select-toggle"
@@ -128,7 +84,6 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 					});
 				});
 			});
-
 			//action of left double-arrow
 			$("#timeline .a0").click(function () {
 				changeDate(0, -4);
@@ -154,7 +109,7 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 				changeDate(1, 1);
 			});
 			//action of the date selection element
-			$("#timeline .t0 input").combodate({ minYear: 2014, firstItem: 'none', errorClass: '#timeline .t0' });
+			$("#timeline .t0 input").combodate({ minYear: 2012, maxYear: 2023, firstItem: 'none', errorClass: '#timeline .t0' });
 		});
 		//make sure, the links are positioned properly when the window is resized
 		window.onresize = function (event) {
@@ -237,7 +192,7 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 							//get the text content of the response
 							var resultString = requestVar.responseText;
 
-							console.log("resultString:", resultString); //fehlende Exception!
+							// console.log("resultString:", resultString); //fehlende Exception!
 
 							//split the content from the database into smaller chunks
 							var bigResultArray = resultString.split("$");
@@ -263,7 +218,7 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 					requestVar.open('POST', 'php/getStringData.php');
 					requestVar.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-					console.log("requestVar:", requestVar)
+					// console.log("requestVar:", requestVar)
 					//send the request with the parameters for the php script as body
 					if (columnsVar1 == "none" || columnsVar1 == "undefined") {
 						requestVar.send("columns0=" + columnsVar0 + "&columns1=" + '' + "&dateInput=" + dateInputVar + "&interval=" + intervalVar);
@@ -328,7 +283,6 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 		}
 		//add spinner and update the content with a timeout in milliseconds
 		function onAnyChange(time) {
-			console.log("test", getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value, ["1", "0.8", "0.75", "0.5"]));
 			//add a spinner to the content panel
 			var target = document.getElementById('content');
 			if (changed < 1) {
@@ -337,7 +291,8 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 			//this prohibits updateContent from being called if the last timeout has not finished yet
 			changed++;
 			//this is setting a delay which is purely cosmetic and could be removed
-			setTimeout(function () { changed--; if (changed == 0) { updateContent(); } }, time);
+			// setTimeout(function () { changed--; if (changed == 0) { updateContent(); } }, time);
+			updateContent();
 		}
 		//correct the vertical placement of the links on the left side
 		function resizeLinks() {
@@ -478,15 +433,15 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 					responsive: true,
 					legendTemplate: "<h1>Legend:</h1><ul class=\"legend\"><li style=\"color:" + colors0[0] + "\"><span>" + getName(columnsValue0) + " (" + getUnit(columnsValue0) + ")</span></li></ul>",
 					bezierCurve: false,
-					scaleShowGridLines: false
+					scaleShowGridLines: false,
 				});
 			} else {
 				//if there are two values to be displayed
 				//this is very similar to the other option
 				var columnsValue0 = document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value;
 				var columnsValue1 = document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect1')[0].value;
-				var colors0 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value, ["1", "0.2"]);
-				var colors1 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect1')[0].value, ["1", "0.2"]);
+				var colors0 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect0')[0].value, ['1', '0.2']);
+				var colors1 = getColor(document.querySelectorAll('#' + activeView + ' .styled-select .columnsSelect1')[0].value, ['1', '0.2']);
 				var barChartData = {
 					labels: dateArraySet,
 					datasets: [
@@ -526,8 +481,6 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 </head>
 
 <body>
-	<?php if (!$langBool) { ?>
-		<!-- This is the english version of the website -->
 		<div id="links">
 			<div class="a0"><a href="http://www.waldorfschule-ismaning.de">Back to the website from which you came</a></div>
 			<div class="a1"><a href="#">Information about this website</a></div>
@@ -558,62 +511,30 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 								<option value="all">All</option>
 								<option value="hour">Every sixty minutes</option>
 								<option value="day">Every day</option>
-								<!--<option value="month">Each month</option>-->
+								<option value="month">Each month</option>
 							</select>
 						</div>
 						<div class="styled-select">
 							<label>Select one measurement</label>
 							<select class="columnsSelect0" name="columns0" onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="styled-select">
 							<label>Select the second one</label>
 							<select class="columnsSelect1" name="columns1" onChange="onAnyChange(4000)">
 								<option value="none">None</option>
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="legendOuter">
@@ -650,56 +571,26 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 						<div class="styled-select">
 							<label>Select one measurement</label>
 							<select class="columnsSelect0" name="columns0" onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
+								<option value="winddir">Wind direction</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="styled-select">
 							<label>Select the second one</label>
 							<select class="columnsSelect1" name="columns1" onChange="onAnyChange(4000)">
 								<option value="none">None</option>
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
+								<option value="winddir">Wind direction</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 						<div class="legendOuter">
@@ -733,31 +624,13 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 							<label>Select all measurements</label>
 							<select class="select-toggle columnsSelect" name="columns0" multiple="multiple"
 								onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
+								<option value="temp">Temperature</option>
+								<option value="pressure">Pressure</option>
+								<option value="hum">Humidity</option>
 								<option value="windspeed">Wind speed</option>
 								<option value="winddir">Wind direction</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="hidir">Direction of highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="thswindex">Temp.\dampness\sun\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
 								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
+								<option value="uvindex">UV-index</option>
 							</select>
 						</div>
 					</div>
@@ -765,243 +638,6 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 				<li><div class="control bar">This is a simple test</div></li>
 			</ul>
 		</div>
-	<?php } else { ?>
-		<!-- This is the german version of the website -->
-		<div id="links">
-			<div class="a0"><a href="http://www.waldorfschule-ismaning.de">Zurück zu der Webseite von der Sie gekommen
-					sind</a></div>
-			<div class="a1"><a href="#">Informationen über diese Webseite</a></div>
-			<div class="a2"><a href="#">Kontakt</a></div>
-		</div>
-		<div id="control">
-			<ul>
-				<li>
-					<div class="openLink line">
-						<a href="#" onClick="controlSwitchTo('controlLine')">Linien Diagramm</a>
-						<div class="advancedOuter">
-							<span class="title">Erweiterte Optionen</span>
-							<div class="advancedSwitch">
-								<div class="onoffswitch">
-									<input name="onoffswitch" class="onoffswitch-checkbox" id="onoffswitch2" checked=""
-										type="checkbox" onchange="advancedSwitch();">
-									<label class="onoffswitch-label" for="onoffswitch2">
-										<div class="onoffswitch-inner"></div>
-										<span class="onoffswitch-switch"></span>
-									</label>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="control" id="controlLine">
-						<div class="styled-select">
-							<label>Intervall</label>
-							<select class="interval" name="interval" onChange="onAnyChange(4000)">
-								<option value="all">Alle</option>
-								<option value="hour">Jede Stunde</option>
-								<option value="day">Jeden Tag</option>
-								<!--<option value="month">Each month</option>-->
-							</select>
-						</div>
-						<div class="styled-select">
-							<label>Einen Messwert wählen</label>
-							<select class="columnsSelect0" name="columns0" onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
-								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
-								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
-							</select>
-						</div>
-						<div class="styled-select">
-							<label>Wählen Sie den Zweiten</label>
-							<select class="columnsSelect1" name="columns1" onChange="onAnyChange(4000)">
-								<option value="none">None</option>
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
-								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
-								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
-							</select>
-						</div>
-						<div class="legendOuter">
-							<span class="title">Legend</span>
-							<div class="legendSwitch">
-								<div class="onoffswitch">
-									<input name="onoffswitch" class="onoffswitch-checkbox" id="onoffswitch1" checked=""
-										type="checkbox" onchange="legendToggle();">
-									<label class="onoffswitch-label" for="onoffswitch1">
-										<div class="onoffswitch-inner"></div>
-										<span class="onoffswitch-switch"></span>
-									</label>
-								</div>
-							</div>
-						</div>
-					</div>
-				</li>
-				<li class="bar">
-					<div class="openLink bar"><a href="#" onClick="controlSwitchTo('controlBar')">Bar Chart</a></div>
-					<div class="control" id="controlBar">
-						<div class="styled-select">
-							<label>Intervall</label>
-							<select class="interval" name="interval" onChange="onAnyChange(4000)">
-								<option value="all">Alle</option>
-								<option value="hour">Jede Stunde</option>
-								<option value="day">Jeden Tag</option>
-								<!--<option value="month">Each month</option>-->
-							</select>
-						</div>
-						<div class="styled-select">
-							<label>Einen Messwert wählen</label>
-							<select class="columnsSelect0" name="columns0" onChange="onAnyChange(4000)">
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
-								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
-								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
-							</select>
-						</div>
-						<div class="styled-select">
-							<label>Wählen Sie den Zweiten</label>
-							<select class="columnsSelect1" name="columns1" onChange="onAnyChange(4000)">
-								<option value="none">None</option>
-								<option value="tempout">Temperature</option>
-								<option value="hitemp">Highest temperature</option>
-								<option value="lowtemp">Lowest temperature</option>
-								<option value="outhum">Humidity</option>
-								<option value="dewpt">Dewpoint</option>
-								<option value="windspeed">Wind speed</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Highest wind speed</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Heat index</option>
-								<option value="thwindex">Temp.\dampness\wind-index</option>
-								<option value="bar">Bar</option>
-								<option value="rain">Rain</option>
-								<option value="rainrate">Rain rate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
-							</select>
-						</div>
-						<div class="legendOuter">
-							<span class="title">Legend</span>
-							<div class="legendSwitch">
-								<div class="onoffswitch">
-									<input name="onoffswitch" class="onoffswitch-checkbox" id="onoffswitch0" checked=""
-										type="checkbox" onchange="legendToggle();">
-									<label class="onoffswitch-label" for="onoffswitch0">
-										<div class="onoffswitch-inner"></div>
-										<span class="onoffswitch-switch"></span>
-									</label>
-								</div>
-							</div>
-						</div>
-					</div>
-				</li>
-				<li>
-					<div class="openLink table"><a href="#" onClick="controlSwitchTo('controlTable')">Table</a></div>
-					<div class="control" id="controlTable">
-						<div class="styled-select">
-							<label>Intervall</label>
-							<select class="interval" name="interval" onChange="onAnyChange(4000)">
-								<option value="all">Alle</option>
-								<option value="hour">Jede Stunde</option>
-								<option value="day">Jeden Tag</option>
-								<!--<option value="month">Each month</option>-->
-							</select>
-						</div>
-						<div class="styled-select multiple">
-							<label>Wählen Sie mehre Messwerte</label>
-							<select class="select-toggle columnsSelect" name="columns0" multiple="multiple"
-								onChange="onAnyChange(4000)">
-								<option value="tempout">Temperatur</option>
-								<option value="hitemp">Höchste Temperatur</option>
-								<option value="lowtemp">Tiefste Temperatur</option>
-								<option value="outhum">Luftfeuchtigkeit</option>
-								<option value="dewpt">Taupunkt</option>
-								<option value="windspeed">Windgeschwindigkeit</option>
-								<option value="winddir">Windrichtung</option>
-								<option value="windrun">Wind run</option>
-								<option value="hispeed">Höchste Windgeschwindigkeit</option>
-								<option value="hidir">Richtung der höchsten Windgeschwindigkeit</option>
-								<option value="windchill">Wind chill</option>
-								<option value="heatindex">Hitze-index</option>
-								<option value="thwindex">Temp./Feuchtigkeits/Wind-index</option>
-								<option value="thswindex">Temp./Feuchtigkeits/Sonnen/Wind-index</option>
-								<option value="bar">Luftdruck</option>
-								<option value="rain">Regen</option>
-								<option value="rainrate">Regenrate</option>
-								<option value="solarrad">Solar rad</option>
-								<option value="solarenergy">Solar energy</option>
-								<option value="hisolarrad">Highest solar rad</option>
-								<option value="uvindex">UV index</option>
-								<option value="uvdose">UV dose</option>
-								<option value="hiuv">Highest UV</option>
-								<option value="heatdd">heatdd</option>
-								<option value="cooldd">cooldd</option>
-							</select>
-						</div>
-					</div>
-				</li>
-			</ul>
-		</div>
-	<?php } ?>
 	<!-- panel that shows the graph(s) if the data is available -->
 	<div id="content">
 		<div id="legendOut">
@@ -1016,7 +652,7 @@ if ($lang == '/weatherstation/index.php' or $lang == '/weatherstation/') {
 				<div class="inner i0"></div>
 				<div class="inner i1"></div>
 				<div class="inner t0"><input type="text" onChange="changeDate(2,0)" data-format="YYYY-MM-DD"
-						data-template="D MMM YYYY" name="date" value="2015-04-24"></input></div>
+						data-template="D MMM YYYY" name="date" value="2012-07-09"></input></div>
 			</div>
 			<div class="a3 inner right"></div>
 			<div class="a2 inner right"></div>
