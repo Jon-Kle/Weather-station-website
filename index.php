@@ -511,7 +511,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 								<option value="all">All</option>
 								<option value="hour">Every sixty minutes</option>
 								<option value="day">Every day</option>
-								<!--<option value="month">Each month</option>-->
+								<option value="month">Each month</option>
 							</select>
 						</div>
 						<div class="styled-select">
