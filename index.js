@@ -1,6 +1,7 @@
 
 var viewMode = "lineChart",
     interval = "month",
+    frequency, // calculated in $(document).ready()
     selection1 = "temp",
     selection2 = "none",
     firstDate, // calculated in $(document).ready()
@@ -98,9 +99,9 @@ function switchControl(id) {
 }
 function updateConfig() {
     // get all the new configs and calculate the new start and end date
-    var selection1 = document.getElementById('selection1').value,
-        selection2 = document.getElementById('selection2').value,
-        interval = document.getElementById('interval').value;
+    selection1 = document.getElementById('selection1').value,
+    selection2 = document.getElementById('selection2').value,
+    frequency = document.getElementById('interval').value;
 
     updateContent()
 }
@@ -109,16 +110,19 @@ function updateContent() {
     // !!! all this has to go into updateConfig() !!!
 
     // create date string yyyy-mm-dd
-    // currentDateStr = `${firstDate.getFullYear()}-${firstDate.getMonth()+1}-${firstDate.getDate()}`,
+    currentDateStr = `${firstDate.getFullYear()}-${firstDate.getMonth()+1}-${firstDate.getDate()}`,
     end = firstDate;
+
+    // year = end.getFullYear()
 
     switch (interval) {// extend the date according to interval
         case 'day':
         case 'week':
         case 'month':
-            end = end.setMonth(end.getMonth() + 1)
+            end = end.setMonth(end.getMonth() + 1);
         case 'year':
-            end = end.setFullYear(end.getFullYear() + 1);
+            // year = end.getFullYear();
+            // end = end.setFullYear(year + 1);
     }
 
 
@@ -146,13 +150,18 @@ function updateContent() {
                     // document.getElementById("table").innerHTML = "";
 
                     //get the text content of the response
-                    var resultString = requestVar.responseText;
-
-                    console.log(resultString)
+                    var resultString = requestVar.responseText; // looks like: 'string(324) "2022-06-16 00:00:00|16.9&20...'
+                    // decode received data string
+                    resultString = resultString.split('"')[1] // looks like: '2022-06-16 00:00:00|16.9&20...'
+                    var resultArray = resultString.split('&')
+                    dataArray = []
+                    resultArray.forEach(element => {
+                        dataArray.push(element.split('|'))
+                    });
+                    console.log(dataArray)
+                    // console.log(resultString)
 
                     // handle exception
-
-                    // decode received data string
 
                     // display  data
                 }

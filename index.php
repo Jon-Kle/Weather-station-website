@@ -109,6 +109,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 				changeDate(1, 1);
 			});
 			//action of the date selection element
+			//this changes the content of the input element -> the onAnyChange() function is called -> data is loaded
 			$("#timeline .t0 input").combodate({ minYear: 2012, maxYear: 2023, firstItem: 'none', errorClass: '#timeline .t0' });
 		});
 		//make sure, the links are positioned properly when the window is resized
@@ -172,6 +173,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 			switch (activeView) {
 				case "controlBar":
 				case "controlLine":
+					throw Error
 					//tries to create a Request
 					if (window.XMLHttpRequest) {
 						requestVar = new XMLHttpRequest();
