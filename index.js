@@ -49,8 +49,7 @@ $(document).ready(function () {
     lastDate = firstDate.setMonth(firstDate.getMonth() + 1)
 })
 
-// Do the same as $(document).ready() just, 
-// when the window gets resized
+// Do the same as $(document).ready() just, when the window gets resized
 window.onresize = function (event) {
     resizeLinkPanel()
     resizeContent()
@@ -70,6 +69,7 @@ function resizeLinkPanel() {
 function resizeContent() {
     $('#content').animate({ 'min-height': $(window).height() - 50 - $("#control").outerHeight(true) + 'px' }, 200);
 }
+// ----------------------
 // Change the view on the control panels
 function switchControl(id) {
     var state = $('#' + id).css('display'); // state of the clicked panel
@@ -97,6 +97,100 @@ function switchControl(id) {
         $('#' + id).slideDown(resizeContent)
     }
 }
+
+class Visualization{
+    //variables
+    data = [] //all loaded data entries
+    range = [] //date range of entries to show
+    graphData = {
+        type: 'line',
+        data: {
+            labels: [1, 2, 3, 4, 5],
+            datasets: [{
+                label: '',
+                data: [],
+                borderWidth: 1,
+                yAxisID: 'y'
+            }, {
+                label: '',
+                data: [],
+                borderWidth: 1,
+                yAxisID: 'y1'
+            }
+            ]
+        },
+        options: {
+            animation: {
+                duration: 200
+            },
+            scales: {
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left'
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right'
+                }
+            },
+        },
+    };
+    visState = "graph" // options: graph, table
+
+    constructor(){
+        //set starting range
+        //set starting selection
+        //update
+    }
+
+    update(){
+        //change in Range/selected value:
+        //get data that is not yet loaded
+        //  -> Data will be of type object
+
+        //empty data, scale, labels
+        //setScale
+        //setLabels
+        //setVisData
+
+
+        //change in type of visualization
+        //remove Graph
+        //show Table
+        //or inverted
+    }
+    setRange(){}
+    getData(){
+        //get data from database
+    }
+    exchangeVisData(dataset, data){
+        //dataset -> number
+        //data -> list
+    }
+    setSelection(side, name){
+        //side -> number
+        //name -> string
+    }
+    setLabels(){
+        //create labels for the graph (writing on the x-axis)
+    }
+
+    //change visualization type
+    setVisType(type){
+        //change between graph and table
+        //if switching, clear html space and call create...()
+    }
+    createGraph(){
+        //create the graph on top of canvas
+    }
+    createTable(){
+        //display text: not available yet / noch nicht verfügbar
+    }
+}
+
+// update the chart configuration
 function updateConfig() {
     // get all the new configs and calculate the new start and end date
     selection1 = document.getElementById('selection1').value,
@@ -105,6 +199,7 @@ function updateConfig() {
 
     updateContent()
 }
+// update the chart content
 function updateContent() {
 
     // !!! all this has to go into updateConfig() !!!
@@ -141,7 +236,7 @@ function updateContent() {
             else {
                 throw new Error("Ajax is not supported by this browser");
             }
-
+            // console.log("sending request")
             // function that handles response
             requestVar.onreadystatechange = function () {
                 if (requestVar.readyState == 4 && requestVar.status == 200) {
@@ -152,18 +247,57 @@ function updateContent() {
                     //get the text content of the response
                     var resultString = requestVar.responseText; // looks like: 'string(324) "2022-06-16 00:00:00|16.9&20...'
                     // decode received data string
+                    //--> Error handling for database connection error
+                    // console.log(resultString)
                     resultString = resultString.split('"')[1] // looks like: '2022-06-16 00:00:00|16.9&20...'
                     var resultArray = resultString.split('&')
                     dataArray = []
                     resultArray.forEach(element => {
                         dataArray.push(element.split('|'))
                     });
-                    console.log(dataArray)
+                    // console.log(dataArray)
                     // console.log(resultString)
 
                     // handle exception
 
                     // display  data
+                    const canv = document.getElementsByTagName('canvas')
+                    canvData = {
+                        type: 'line',
+                        data: {
+                            labels: [1, 2, 3, 4, 5],
+                            datasets: [{
+                                label: '',
+                                data: [],
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            }, {
+                                label: '',
+                                data: [],
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }
+                            ]
+                        },
+                        options: {
+                            animation: {
+                                duration: 200
+                            },
+                            scales: {
+                                y: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left'
+                                },
+                                y1: {
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'right'
+                                }
+                            },
+                        },
+                    };
+                    new Chart(canv, canvData);
                 }
             }
 
