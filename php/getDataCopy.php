@@ -5,10 +5,10 @@ date_default_timezone_set('CET'); // just for continuity between this and the DB
 # get all the variables from the request
 $selection1 = $_POST['selection1'];
 $selection2 = $_POST['selection2'];
-echo $selection2;
 $start = $_POST['startDate'];
-$start = '2012-6-16 00:00:00';
-$end = '2022-6-17 00:00:00';
+$end = $_POST['endDate'];
+// $start = '2022-6-15 00:00:00';
+// $end = '2022-6-18 00:00:00';
 
 // $dateStr = $date->format("r");
 // echo $selection1, " ", $selection2, ' ', $dateStr;
@@ -31,12 +31,14 @@ function connectToDatabase() {
 $conn = connectToDatabase();
 
 // get Data from Database
-$sqlQuery = "SELECT entryDate, $selection1 $selection2 FROM weatherdata WHERE entryDate BETWEEN '$start' AND '$end'";
+$sqlQuery = "SELECT entryDate, $selection1 $selection2 FROM weatherdata WHERE entryDate BETWEEN '$start' AND '$end';";
+// echo $sqlQuery;
+// return;
 $result = mysqli_query($conn, $sqlQuery);
 $rows = mysqli_fetch_all($result);
 // $rows is a two dimensional array
 $transmission_str = '';
-// implode()
+// transform into string
 for($i=0; $i < sizeof($rows)-1; $i++){
 
 	for ($j=0; $j < sizeof($rows[$i])-1; $j++) { 
@@ -51,6 +53,6 @@ for ($j=0; $j < sizeof(end($rows))-1; $j++) {
 	$transmission_str .= '|';
 }
 $transmission_str .= $rows[$i][$j];
-echo var_dump($transmission_str) //this is only temporary
+echo $transmission_str
 // create string with values (Values : ; | & )
 ?>

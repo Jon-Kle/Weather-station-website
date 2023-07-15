@@ -10,6 +10,9 @@ var viewMode = "lineChart",
     lastDateStr,
     data;
 
+// needs to be predefined for event calling
+var v;
+
 var spinnerOptions = {
     lines: 13,
     length: 34,
@@ -36,17 +39,21 @@ var spinnerOptions = {
 // When the page is loaded, resize the link panel 
 // and the content panel.
 $(document).ready(function () {
-    resizeLinkPanel()
-    resizeContent()
+    resizeLinkPanel();
+    resizeContent();
+
+    // visualization object
+    v = new Visualization();
     // calculate first entry of the last month
-    firstDate = new Date()
-    firstDate.setMonth(firstDate.getMonth() - 1)
-    firstDate.setDate(1)
-    firstDate.setHours(0)
-    firstDate.setMinutes(0)
-    firstDate.setSeconds(0)
-    firstDate.setMilliseconds(0)
-    lastDate = firstDate.setMonth(firstDate.getMonth() + 1)
+    v.startDate = new Date();
+    v.startDate.setMonth(v.startDate.getMonth() - 1);
+    v.startDate.setDate(1);
+    v.startDate.setHours(0);
+    v.startDate.setMinutes(0);
+    v.startDate.setSeconds(0);
+    v.startDate.setMilliseconds(0);
+
+    v.endDate = new Date()
 })
 
 // Do the same as $(document).ready() just, when the window gets resized
@@ -73,22 +80,23 @@ function resizeContent() {
 // Change the view on the control panels
 function switchControl(id) {
     var state = $('#' + id).css('display'); // state of the clicked panel
-    // hide the lineChart controls if necessary
-    if ($('#lineChart').css('display') == 'block') {
-        viewMode = "lineChart"
-        $('#lineChart').slideUp(resizeContent)
-        // hide the table controls if necessary
-        // also hide the blue bottom line and adjust the corners
-    } else {
-        viewMode = "table"
+    // if graph controls are open -> close them
+    if ($('#graph').css('display') == 'block') {
+        v.setViewMode('graph')
+        $('#graph').slideUp(resizeContent)
+    }
+    // if table controls are open -> close them
+    else {
+        v.setViewMode('table')
         $('#table').slideUp(resizeContent)
+        // slide up bottom blue line
         $('.title-bar.bottom').slideUp(resizeContent)
         $('#table-title').css({ 'border-radius': '0px 0px 4px 4px' })
     }
-    // if the clicked panel is a different panel than the clicked one
+    // if clicked controls are not open -> open them
     if (state != 'block') {
+        // if table gets opened, show bottom blue line
         if (id == "table") {
-            // show the blue bottom line
             $('.title-bar.bottom').slideDown(resizeContent)
             // change the corners
             $('#table-title').css({ 'border-radius': '0px' })
@@ -99,9 +107,17 @@ function switchControl(id) {
 }
 
 class Visualization{
-    //variables
-    data = [] //all loaded data entries
-    range = [] //date range of entries to show
+    // variables
+    labelFrequency;
+    selection1;
+    selection2;
+    viewMode;
+    startDate;
+    endDate;
+    dateRange = 'month';
+    data;
+
+    range = [] // date range of entries to show
     graphData = {
         type: 'line',
         data: {
@@ -140,182 +156,118 @@ class Visualization{
     visState = "graph" // options: graph, table
 
     constructor(){
-        //set starting range
-        //set starting selection
-        //update
-    }
+        // initialize attributes
+        this.labelFrequency = document.getElementById('interval').value;
+        this.selection1 = document.getElementById('selection1').value;
+        this.selection2 = document.getElementById('selection2').value;
 
+        // set starting range
+        // set starting selection
+        // update
+
+    }
+    setViewMode(val){
+        if (['table', 'graph'].includes(val)){
+            viewMode = val
+        } else {
+            throw new TypeError("val must be either \"graph\" or \"table\" but it can't be " + val)
+        }
+    }
     update(){
-        //change in Range/selected value:
-        //get data that is not yet loaded
+        // update attributes
+        this.labelFrequency = document.getElementById('interval').value;
+        this.selection1 = document.getElementById('selection1').value;
+        this.selection2 = document.getElementById('selection2').value;
+
+        this.getData()
+        // get data that is not yet loaded
         //  -> Data will be of type object
 
-        //empty data, scale, labels
-        //setScale
-        //setLabels
-        //setVisData
+        // empty data, scale, labels
+        // setScale
+        // setLabels
+        // setVisData
 
 
-        //change in type of visualization
-        //remove Graph
-        //show Table
-        //or inverted
+        // change in type of visualization
+        // remove Graph
+        // show Table
+        // or inverted
     }
-    setRange(){}
+    startSpinner(){
+        spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'))
+    }
+    stopSpinner(){
+        spinner.stop();
+    }
+    getDateStr(date) {
+        return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} 00:00:00`
+    }
     getData(){
-        //get data from database
+        if (window.XMLHttpRequest) { // try to create a request
+            var request = new XMLHttpRequest();
+        }
+        else if (window.ActiveXObject) { // method for older browsers
+            var request = new ActiveXObject("Msxml2.XMLHTTP");
+        }
+        else {
+            alert('Ajax is not supported by this browser!');
+        }
+
+        request.onreadystatechange = function() {
+            if (request.readyState == 4 && request.status == 200) {
+                let resultString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
+                let tempArray;
+                let dataArray = [];
+                // decode received data String
+                tempArray = resultString.split('&')
+                tempArray.forEach(function (currentVal, i) {
+                    dataArray.push(currentVal.split('|'));
+                });
+                v.data = dataArray;
+            }
+        }
+
+        // initialize the request
+        request.open('POST', 'php/getDataCopy.php');
+        request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        // send request
+        let secondSelectionStr;
+        if (this.selection2 == 'none') {
+            secondSelectionStr = '';
+        } else {
+            secondSelectionStr = `, ${this.selection2}`;
+        }
+        console.log(this.startDate)
+        console.log(this.endDate)
+        let startDateStr = this.getDateStr(this.startDate)
+        let endDateStr = this.getDateStr(this.endDate)
+
+        let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
+        request.send(requestStr)
     }
     exchangeVisData(dataset, data){
-        //dataset -> number
-        //data -> list
+        // dataset -> number
+        // data -> list
     }
     setSelection(side, name){
-        //side -> number
-        //name -> string
+        // side -> number
+        // name -> string
     }
     setLabels(){
-        //create labels for the graph (writing on the x-axis)
+        // create labels for the graph (writing on the x-axis)
     }
 
-    //change visualization type
+    // change visualization type
     setVisType(type){
-        //change between graph and table
-        //if switching, clear html space and call create...()
+        // change between graph and table
+        // if switching, clear html space and call create...()
     }
     createGraph(){
-        //create the graph on top of canvas
+        // create the graph on top of canvas
     }
     createTable(){
-        //display text: not available yet / noch nicht verfügbar
-    }
-}
-
-// update the chart configuration
-function updateConfig() {
-    // get all the new configs and calculate the new start and end date
-    selection1 = document.getElementById('selection1').value,
-    selection2 = document.getElementById('selection2').value,
-    frequency = document.getElementById('interval').value;
-
-    updateContent()
-}
-// update the chart content
-function updateContent() {
-
-    // !!! all this has to go into updateConfig() !!!
-
-    // create date string yyyy-mm-dd
-    currentDateStr = `${firstDate.getFullYear()}-${firstDate.getMonth()+1}-${firstDate.getDate()}`,
-    end = firstDate;
-
-    // year = end.getFullYear()
-
-    switch (interval) {// extend the date according to interval
-        case 'day':
-        case 'week':
-        case 'month':
-            end = end.setMonth(end.getMonth() + 1);
-        case 'year':
-            // year = end.getFullYear();
-            // end = end.setFullYear(year + 1);
-    }
-
-
-    // calculate end from currentDateStr and interval
-
-
-    switch (viewMode) {
-        case "lineChart":
-            spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'))
-            if (window.XMLHttpRequest) { //try to create a Request
-                requestVar = new XMLHttpRequest();
-            }
-            else if (window.ActiveXObject) { //method for older browsers
-                requestVar = new ActiveXObject("Msxml2.XMLHTTP");
-            }
-            else {
-                throw new Error("Ajax is not supported by this browser");
-            }
-            // console.log("sending request")
-            // function that handles response
-            requestVar.onreadystatechange = function () {
-                if (requestVar.readyState == 4 && requestVar.status == 200) {
-                    spinner.stop();
-                    // document.querySelector('canvas').style.display = "block";
-                    // document.getElementById("table").innerHTML = "";
-
-                    //get the text content of the response
-                    var resultString = requestVar.responseText; // looks like: 'string(324) "2022-06-16 00:00:00|16.9&20...'
-                    // decode received data string
-                    //--> Error handling for database connection error
-                    // console.log(resultString)
-                    resultString = resultString.split('"')[1] // looks like: '2022-06-16 00:00:00|16.9&20...'
-                    var resultArray = resultString.split('&')
-                    dataArray = []
-                    resultArray.forEach(element => {
-                        dataArray.push(element.split('|'))
-                    });
-                    // console.log(dataArray)
-                    // console.log(resultString)
-
-                    // handle exception
-
-                    // display  data
-                    const canv = document.getElementsByTagName('canvas')
-                    canvData = {
-                        type: 'line',
-                        data: {
-                            labels: [1, 2, 3, 4, 5],
-                            datasets: [{
-                                label: '',
-                                data: [],
-                                borderWidth: 1,
-                                yAxisID: 'y'
-                            }, {
-                                label: '',
-                                data: [],
-                                borderWidth: 1,
-                                yAxisID: 'y1'
-                            }
-                            ]
-                        },
-                        options: {
-                            animation: {
-                                duration: 200
-                            },
-                            scales: {
-                                y: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'left'
-                                },
-                                y1: {
-                                    type: 'linear',
-                                    display: true,
-                                    position: 'right'
-                                }
-                            },
-                        },
-                    };
-                    new Chart(canv, canvData);
-                }
-            }
-
-            // initialize the request
-            requestVar.open('POST', 'php/getDataCopy.php'); // temporary
-            requestVar.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-
-            // send request
-            {// adjust the second selection string for the sql query
-                var secondSelectionStr;
-                if (selection2 == "none") {
-                    secondSelectionStr = '';
-                } else {
-                    secondSelectionStr = `, ${selection2}`;
-                }
-            }
-            requestVar.send("selection1=" + selection1 + "&selection2=" + secondSelectionStr + "&startDate=" + currentDateStr + "&endDate=" + interval);
-        case "table":
-            break;
+        // display text: not available yet / noch nicht verfügbar
     }
 }

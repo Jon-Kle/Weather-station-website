@@ -23,11 +23,11 @@ JQuery documentation: https://api.jquery.com/jQuery/
 		<div class="bottom"><a href="#">Kontakt</a></div>
 	</div>
 	<div id="control" class="box box-base">
-		<div class="title-bar top" onclick="switchControl('lineChart')">Liniendiagramm</div>
-		<div id="lineChart" class="control-content">
+		<div class="title-bar top" onclick="switchControl('graph')">Liniendiagramm</div>
+		<div id="graph" class="control-content">
 					<div class="selection">
 						<label>Intervall</label>
-						<select id="interval" onchange="updateConfig()">
+						<select id="interval" onchange="v.update()">
 							<option value="all">Jede halbe Stunde</option>
 							<option value="hour">Alle 60 Minuten</option>
 							<option value="day">Jeden Tag</option> <!-- fertig übersetzen -->
@@ -36,7 +36,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 					</div>
 					<div class="selection">
 						<label>Select value</label>
-						<select id="selection1" onchange="updateConfig()">
+						<select id="selection1" onchange="v.update()">
 								<option value="temp">Temperature</option>
 								<option value="pressure">Pressure</option>
 								<option value="hum">Humidity</option>
@@ -47,7 +47,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 					</div>
 					<div class="selection">
 						<label>Optional second value</label>
-						<select id="selection2" onchange="updateConfig()">
+						<select id="selection2" onchange="v.update()">
 							<option value="none">None</option>
 								<option value="temp">Temperature</option>
 								<option value="pressure">Pressure</option>
@@ -62,15 +62,15 @@ JQuery documentation: https://api.jquery.com/jQuery/
 		<div id="table" class="control-content" style="display: none">
 					<div class="selection">
 						<label>Interval</label>
-						<select id="interval" onchange="updateConfig()"></select>
+						<select id="interval" onchange="v.update()()"></select>
 					</div>
 					<div class="selection">
 						<label>Select value</label>
-						<select id="selection1" onchange="updateConfig()"></select>
+						<select id="selection1" onchange="v.update()()"></select>
 					</div>
 					<div class="selection">
 						<label>Optional second value</label>
-						<select id="selection2" onchange="updateConfig()"></select>
+						<select id="selection2" onchange="v.update()()"></select>
 					</div>
 		</div>
 		<div class="title-bar bottom" style="display: none"></div>
