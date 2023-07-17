@@ -5,10 +5,10 @@ date_default_timezone_set('CET'); // just for continuity between this and the DB
 # get all the variables from the request
 $selection1 = $_POST['selection1'];
 $selection2 = $_POST['selection2'];
-// $start = $_POST['startDate'];
-// $end = $_POST['endDate'];
-$start = '2022-6-15 00:00:00';
-$end = '2022-6-18 00:00:00';
+$start = $_POST['startDate'];
+$end = $_POST['endDate'];
+// $start = '2022-6-15 00:00:00';
+// $end = '2022-6-18 00:00:00';
 
 // $dateStr = $date->format("r");
 // echo $selection1, " ", $selection2, ' ', $dateStr;
@@ -37,6 +37,10 @@ $sqlQuery = "SELECT entryDate, $selection1 $selection2 FROM weatherdata WHERE en
 $result = mysqli_query($conn, $sqlQuery);
 $rows = mysqli_fetch_all($result);
 // $rows is a two dimensional array
+if (sizeof($rows) <= 0) {
+	echo 'no data returned';
+	return;
+}
 $transmission_str = '';
 // transform into string
 for($i=0; $i < sizeof($rows)-1; $i++){
@@ -53,6 +57,6 @@ for ($j=0; $j < sizeof(end($rows))-1; $j++) {
 	$transmission_str .= '|';
 }
 $transmission_str .= $rows[$i][$j];
-echo $transmission_str
+echo $transmission_str;
 // create string with values (Values : ; | & )
 ?>

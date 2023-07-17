@@ -1,5 +1,6 @@
 
-var changeDateLock;
+var changeDateLock,
+    dateWarningActive = false;
 
 // needs to be predefined for event calling
 var v;
@@ -36,25 +37,29 @@ $(document).ready(function () {
     // visualization object
     v = new Visualization();
 
+    // stops execution of changeDate() function to remove unnecessary calculations and bugs
     changeDateLock = true
+
     // create date pickers
     // this calls changeDate() which in turn calls v.update()
-    let datePickerData = {minYear: 2012, maxYear: (new Date().getFullYear()), firstItem: "none", smartDays: true}
+    let datePickerData = { minYear: 2012, maxYear: (new Date().getFullYear()), firstItem: "none", smartDays: true }
     $("#date-picker1").combodate(datePickerData);
     $("#date-picker2").combodate(datePickerData);
 
     //set ending date for date pickers
     v.endDate = normalizeDate(new Date())
-    v.endDate.setDate(v.endDate.getDate()+1)
+    v.endDate.setDate(v.endDate.getDate() + 1)
     let endDate = v.endDate.getDate()
     // set starting date for date pickers
     v.startDate = new Date(v.endDate)
-    v.startDate.setDate(endDate-7)
-    
+    v.startDate.setDate(endDate - 7)
+
     // set date pickers values
     $("#date-picker1").combodate("setValue", v.startDate)
     $("#date-picker2").combodate("setValue", v.endDate)
     changeDateLock = false
+
+    v.update()
 })
 
 // set hours, minutes and seconds as well as ms to 0
@@ -122,19 +127,20 @@ function changeDate(selectorIndex) {
     if (changeDateLock) {
         return
     }
-    v.update()
     if (selectorIndex == 0) {
         let dateStr = $("#date-picker1").combodate('getValue', 'YYYY-M-DD')
         let dateArray = dateStr.split('-')
         let newDate = new Date(v.startDate)
         newDate.setYear(Number(dateArray[0]))
-        newDate.setMonth(Number(dateArray[1])-1)
+        newDate.setMonth(Number(dateArray[1]) - 1)
         newDate.setDate(Number(dateArray[2]))
         if (newDate >= v.endDate) {
             $(".selection")[2].style.backgroundColor = '#bf1717'
+            dateWarningActive = true
         } else {
             $(".selection")[2].style.backgroundColor = '#3b8ec2'
             $(".selection")[3].style.backgroundColor = '#3b8ec2'
+            dateWarningActive = false
         }
         v.startDate = new Date(newDate)
         // console.log(v.startDate)
@@ -143,22 +149,25 @@ function changeDate(selectorIndex) {
         let dateArray = dateStr.split('-')
         let newDate = new Date(v.endDate)
         newDate.setYear(Number(dateArray[0]))
-        newDate.setMonth(Number(dateArray[1])-1)
+        newDate.setMonth(Number(dateArray[1]) - 1)
         newDate.setDate(Number(dateArray[2]))
         if (newDate <= v.startDate) {
             $(".selection")[3].style.backgroundColor = '#bf1717'
+            dateWarningActive = true
         } else {
             $(".selection")[2].style.backgroundColor = '#3b8ec2'
             $(".selection")[3].style.backgroundColor = '#3b8ec2'
+            dateWarningActive = false
         }
         v.endDate = new Date(newDate)
         // console.log(v.endDate)
     } else {
         throw TypeError(`Selector Index must be valid index! It can't be ${selectorIndex}`)
     }
+    v.update()
 }
 
-class Visualization{
+class Visualization {
     // variables
     labelFrequency;
     selection1;
@@ -208,17 +217,17 @@ class Visualization{
     };
     visState = "graph" // options: graph, table
 
-    constructor(){
+    constructor() {
 
     }
-    setViewMode(val){
-        if (['table', 'graph'].includes(val)){
+    setViewMode(val) {
+        if (['table', 'graph'].includes(val)) {
             viewMode = val
         } else {
             throw new TypeError("val must be either \"graph\" or \"table\" but it can't be " + val)
         }
     }
-    update(){
+    update() {
         // update attributes
         this.selection1 = document.getElementById('selection1').value;
         this.selection2 = document.getElementById('selection2').value;
@@ -238,16 +247,16 @@ class Visualization{
         // show Table
         // or inverted
     }
-    startSpinner(){
+    startSpinner() {
         this.spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'))
     }
-    stopSpinner(){
+    stopSpinner() {
         this.spinner.stop();
     }
     getDateStr(date) {
-        return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} 00:00:00`
+        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
     }
-    getData(){
+    getData() {
         if (this.requestNum > 0) {
             return
         }
@@ -264,18 +273,20 @@ class Visualization{
             alert('Ajax is not supported by this browser!');
         }
 
-        request.onreadystatechange = function() {
+        request.onreadystatechange = function () {
             if (request.readyState == 4 && request.status == 200) {
                 v.stopSpinner()
                 v.requestNum--;
                 let resultString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
                 let tempArray;
                 let dataArray = [];
-                // decode received data String
-                tempArray = resultString.split('&')
-                tempArray.forEach(function (currentVal, i) {
-                    dataArray.push(currentVal.split('|'));
-                });
+                if (resultString != "no data returned") {
+                    // decode received data String
+                    tempArray = resultString.split('&')
+                    tempArray.forEach(function (currentVal, i) {
+                        dataArray.push(currentVal.split('|'));
+                    });
+                }
                 v.data = dataArray;
             }
         }
@@ -286,40 +297,19 @@ class Visualization{
 
         // send request
         let secondSelectionStr;
-        if (this.selection2 == 'none') {
-            secondSelectionStr = '';
-        } else {
-            secondSelectionStr = `, ${this.selection2}`;
-        }
-        // let startDateStr = this.getDateStr(this.startDate)
-        // let endDateStr = this.getDateStr(this.endDate)
-        let startDateStr = ''
-        let endDateStr = ''
+if (this.selection2 == 'none') {
+    secondSelectionStr = '';
+} else {
+    secondSelectionStr = `, ${this.selection2}`;
+}
+let startDateStr = this.getDateStr(this.startDate)
+let endDateStr = this.getDateStr(this.endDate)
 
-        let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
-        request.send(requestStr)
-    }
-    exchangeVisData(dataset, data){
-        // dataset -> number
-        // data -> list
-    }
-    setSelection(side, name){
-        // side -> number
-        // name -> string
-    }
-    setLabels(){
-        // create labels for the graph (writing on the x-axis)
+let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
+// console.log(requestStr)
+request.send(requestStr)
     }
 
-    // change visualization type
-    setVisType(type){
-        // change between graph and table
-        // if switching, clear html space and call create...()
-    }
-    createGraph(){
-        // create the graph on top of canvas
-    }
-    createTable(){
-        // display text: not available yet / noch nicht verfügbar
-    }
+createGraph(){ /*create the graph on top of canvas*/ }
+createTable(){/*display text: not available yet / noch nicht verfügbar*/ }
 }
