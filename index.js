@@ -1,14 +1,5 @@
 
-var viewMode = "lineChart",
-    interval = "month",
-    frequency, // calculated in $(document).ready()
-    selection1 = "temp",
-    selection2 = "none",
-    firstDate, // calculated in $(document).ready()
-    firstDateStr,
-    lastDate, // calculated in $(document).ready()
-    lastDateStr,
-    data;
+var changeDateLock;
 
 // needs to be predefined for event calling
 var v;
@@ -45,6 +36,7 @@ $(document).ready(function () {
     // visualization object
     v = new Visualization();
 
+    changeDateLock = true
     // create date pickers
     // this calls changeDate() which in turn calls v.update()
     let datePickerData = {minYear: 2012, maxYear: (new Date().getFullYear()), firstItem: "none", smartDays: true}
@@ -58,10 +50,11 @@ $(document).ready(function () {
     // set starting date for date pickers
     v.startDate = new Date(v.endDate)
     v.startDate.setDate(endDate-7)
-
+    
     // set date pickers values
     $("#date-picker1").combodate("setValue", v.startDate)
     $("#date-picker2").combodate("setValue", v.endDate)
+    changeDateLock = false
 })
 
 // set hours, minutes and seconds as well as ms to 0
@@ -126,20 +119,39 @@ function switchControl(id) {
 
 // update the date variables of the visualization
 function changeDate(selectorIndex) {
+    if (changeDateLock) {
+        return
+    }
     v.update()
     if (selectorIndex == 0) {
         let dateStr = $("#date-picker1").combodate('getValue', 'YYYY-M-DD')
         let dateArray = dateStr.split('-')
-        v.startDate.setYear(Number(dateArray[0]))
-        v.startDate.setMonth(Number(dateArray[1])-1)
-        v.startDate.setDate(Number(dateArray[2]))
+        let newDate = new Date(v.startDate)
+        newDate.setYear(Number(dateArray[0]))
+        newDate.setMonth(Number(dateArray[1])-1)
+        newDate.setDate(Number(dateArray[2]))
+        if (newDate >= v.endDate) {
+            $(".selection")[2].style.backgroundColor = '#bf1717'
+        } else {
+            $(".selection")[2].style.backgroundColor = '#3b8ec2'
+            $(".selection")[3].style.backgroundColor = '#3b8ec2'
+        }
+        v.startDate = new Date(newDate)
         // console.log(v.startDate)
     } else if (selectorIndex == 1) {
         let dateStr = $("#date-picker2").combodate('getValue', 'YYYY-M-DD')
         let dateArray = dateStr.split('-')
-        v.endDate.setYear(Number(dateArray[0]))
-        v.endDate.setMonth(Number(dateArray[1])-1)
-        v.endDate.setDate(Number(dateArray[2]))
+        let newDate = new Date(v.endDate)
+        newDate.setYear(Number(dateArray[0]))
+        newDate.setMonth(Number(dateArray[1])-1)
+        newDate.setDate(Number(dateArray[2]))
+        if (newDate <= v.startDate) {
+            $(".selection")[3].style.backgroundColor = '#bf1717'
+        } else {
+            $(".selection")[2].style.backgroundColor = '#3b8ec2'
+            $(".selection")[3].style.backgroundColor = '#3b8ec2'
+        }
+        v.endDate = new Date(newDate)
         // console.log(v.endDate)
     } else {
         throw TypeError(`Selector Index must be valid index! It can't be ${selectorIndex}`)
