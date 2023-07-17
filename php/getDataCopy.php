@@ -5,10 +5,10 @@ date_default_timezone_set('CET'); // just for continuity between this and the DB
 # get all the variables from the request
 $selection1 = $_POST['selection1'];
 $selection2 = $_POST['selection2'];
-$start = $_POST['startDate'];
-$end = $_POST['endDate'];
-// $start = '2022-6-15 00:00:00';
-// $end = '2022-6-18 00:00:00';
+// $start = $_POST['startDate'];
+// $end = $_POST['endDate'];
+$start = '2022-6-15 00:00:00';
+$end = '2022-6-18 00:00:00';
 
 // $dateStr = $date->format("r");
 // echo $selection1, " ", $selection2, ' ', $dateStr;

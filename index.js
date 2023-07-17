@@ -44,17 +44,35 @@ $(document).ready(function () {
 
     // visualization object
     v = new Visualization();
-    // calculate first entry of the last month
-    v.startDate = new Date();
-    v.startDate.setMonth(v.startDate.getMonth() - 1);
-    v.startDate.setDate(1);
-    v.startDate.setHours(0);
-    v.startDate.setMinutes(0);
-    v.startDate.setSeconds(0);
-    v.startDate.setMilliseconds(0);
 
-    v.endDate = new Date()
+    // create date pickers
+    // this calls changeDate() which in turn calls v.update()
+    let datePickerData = {minYear: 2012, maxYear: (new Date().getFullYear()), firstItem: "none", smartDays: true}
+    $("#date-picker1").combodate(datePickerData);
+    $("#date-picker2").combodate(datePickerData);
+
+    //set ending date for date pickers
+    v.endDate = normalizeDate(new Date())
+    v.endDate.setDate(v.endDate.getDate()+1)
+    let endDate = v.endDate.getDate()
+    // set starting date for date pickers
+    v.startDate = new Date(v.endDate)
+    v.startDate.setDate(endDate-7)
+
+    // set date pickers values
+    $("#date-picker1").combodate("setValue", v.startDate)
+    $("#date-picker2").combodate("setValue", v.endDate)
 })
+
+// set hours, minutes and seconds as well as ms to 0
+function normalizeDate(date) {
+    newDate = new Date(date);
+    newDate.setHours(0);
+    newDate.setMinutes(0);
+    newDate.setSeconds(0);
+    newDate.setMilliseconds(0);
+    return newDate;
+}
 
 // Do the same as $(document).ready() just, when the window gets resized
 window.onresize = function (event) {
@@ -106,6 +124,28 @@ function switchControl(id) {
     }
 }
 
+// update the date variables of the visualization
+function changeDate(selectorIndex) {
+    v.update()
+    if (selectorIndex == 0) {
+        let dateStr = $("#date-picker1").combodate('getValue', 'YYYY-M-DD')
+        let dateArray = dateStr.split('-')
+        v.startDate.setYear(Number(dateArray[0]))
+        v.startDate.setMonth(Number(dateArray[1])-1)
+        v.startDate.setDate(Number(dateArray[2]))
+        // console.log(v.startDate)
+    } else if (selectorIndex == 1) {
+        let dateStr = $("#date-picker2").combodate('getValue', 'YYYY-M-DD')
+        let dateArray = dateStr.split('-')
+        v.endDate.setYear(Number(dateArray[0]))
+        v.endDate.setMonth(Number(dateArray[1])-1)
+        v.endDate.setDate(Number(dateArray[2]))
+        // console.log(v.endDate)
+    } else {
+        throw TypeError(`Selector Index must be valid index! It can't be ${selectorIndex}`)
+    }
+}
+
 class Visualization{
     // variables
     labelFrequency;
@@ -116,8 +156,9 @@ class Visualization{
     endDate;
     dateRange = 'month';
     data;
+    spinner;
+    requestNum = 0;
 
-    range = [] // date range of entries to show
     graphData = {
         type: 'line',
         data: {
@@ -156,14 +197,6 @@ class Visualization{
     visState = "graph" // options: graph, table
 
     constructor(){
-        // initialize attributes
-        this.labelFrequency = document.getElementById('interval').value;
-        this.selection1 = document.getElementById('selection1').value;
-        this.selection2 = document.getElementById('selection2').value;
-
-        // set starting range
-        // set starting selection
-        // update
 
     }
     setViewMode(val){
@@ -175,7 +208,6 @@ class Visualization{
     }
     update(){
         // update attributes
-        this.labelFrequency = document.getElementById('interval').value;
         this.selection1 = document.getElementById('selection1').value;
         this.selection2 = document.getElementById('selection2').value;
 
@@ -195,15 +227,21 @@ class Visualization{
         // or inverted
     }
     startSpinner(){
-        spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'))
+        this.spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'))
     }
     stopSpinner(){
-        spinner.stop();
+        this.spinner.stop();
     }
     getDateStr(date) {
         return `${date.getFullYear()}-${date.getMonth()+1}-${date.getDate()} 00:00:00`
     }
     getData(){
+        if (this.requestNum > 0) {
+            return
+        }
+        this.startSpinner()
+        this.requestNum++;
+
         if (window.XMLHttpRequest) { // try to create a request
             var request = new XMLHttpRequest();
         }
@@ -216,6 +254,8 @@ class Visualization{
 
         request.onreadystatechange = function() {
             if (request.readyState == 4 && request.status == 200) {
+                v.stopSpinner()
+                v.requestNum--;
                 let resultString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
                 let tempArray;
                 let dataArray = [];
@@ -239,10 +279,10 @@ class Visualization{
         } else {
             secondSelectionStr = `, ${this.selection2}`;
         }
-        console.log(this.startDate)
-        console.log(this.endDate)
-        let startDateStr = this.getDateStr(this.startDate)
-        let endDateStr = this.getDateStr(this.endDate)
+        // let startDateStr = this.getDateStr(this.startDate)
+        // let endDateStr = this.getDateStr(this.endDate)
+        let startDateStr = ''
+        let endDateStr = ''
 
         let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
         request.send(requestStr)

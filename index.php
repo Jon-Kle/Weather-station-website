@@ -27,7 +27,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 			dateInputVar = "2015-04-241 0", //start date + length of interval
 			advancedBool = false;
 
-		//what does this do?
+		//spinner options
 		var opts = {
 			lines: 13,
 			length: 34,

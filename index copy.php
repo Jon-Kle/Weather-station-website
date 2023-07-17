@@ -13,6 +13,8 @@ JQuery documentation: https://api.jquery.com/jQuery/
 	<script type="text/javascript" src="js/chart.umd.js"></script>
 	<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="js/spin.min.js"></script>
+	<script type="text/javascript" src="js/moment.min.js"></script>
+	<script type="text/javascript" src="js/combodate.js"></script>
 	<script type="text/javascript" src="index.js"></script>
 </head>
 
@@ -25,16 +27,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 	<div id="control" class="box box-base">
 		<div class="title-bar top" onclick="switchControl('graph')">Liniendiagramm</div>
 		<div id="graph" class="control-content">
-					<div class="selection">
-						<label>Intervall</label>
-						<select id="interval" onchange="v.update()">
-							<option value="all">Jede halbe Stunde</option>
-							<option value="hour">Alle 60 Minuten</option>
-							<option value="day">Jeden Tag</option> <!-- fertig übersetzen -->
-							<option value="month">Each Month</option>
-						</select>
-					</div>
-					<div class="selection">
+					<div class="selection value">
 						<label>Select value</label>
 						<select id="selection1" onchange="v.update()">
 								<option value="temp">Temperature</option>
@@ -45,7 +38,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 								<option value="uvindex">UV-index</option>
 						</select>
 					</div>
-					<div class="selection">
+					<div class="selection value">
 						<label>Optional second value</label>
 						<select id="selection2" onchange="v.update()">
 							<option value="none">None</option>
@@ -56,6 +49,14 @@ JQuery documentation: https://api.jquery.com/jQuery/
 								<option value="rainrate">Rain rate</option>
 								<option value="uvindex">UV-index</option>
 						</select>
+					</div>
+					<div class="selection">
+						<label>Start Date</label>
+						<div class="date"><input type="text" id="date-picker1" onchange="changeDate(0)" data-format="DD-MM-YYYY" data-template="D MMM YYYY" name="date"></div>
+					</div>
+					<div class="selection">
+						<label>End Date</label>
+						<div class="date"><input type="text" id="date-picker2" onchange="changeDate(1)" data-format="DD-MM-YYYY" data-template="D MMM YYYY" name="date"></div>
 					</div>
 		</div>
 		<div id="table-title" class="title-bar" onclick="switchControl('table')">Table</div>
