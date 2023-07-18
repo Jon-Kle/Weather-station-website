@@ -1,9 +1,8 @@
 
-var changeDateLock,
-    dateWarningActive = false;
-
-// needs to be predefined for event calling
-var v;
+// flags
+var changeDateLock, // locks the execution for the event listener changeDate()
+    dateWarningActive = false, // shows, that the starting and the end date values are in the wrong order
+    awaitDataResponse = false; // shows that db data is being requested
 
 var spinnerOptions = {
     lines: 13,
@@ -41,24 +40,27 @@ $(document).ready(function () {
     changeDateLock = true
 
     // create date pickers
-    // this calls changeDate() which in turn calls v.update()
+    // this calls changeDate() which gets blocked by changeDateLock
     let datePickerData = { minYear: 2012, maxYear: (new Date().getFullYear()), firstItem: "none", smartDays: true }
     $("#date-picker1").combodate(datePickerData);
     $("#date-picker2").combodate(datePickerData);
 
-    //set ending date for date pickers
+    //set ending and start date for date pickers
     v.endDate = normalizeDate(new Date())
     v.endDate.setDate(v.endDate.getDate() + 1)
     let endDate = v.endDate.getDate()
-    // set starting date for date pickers
     v.startDate = new Date(v.endDate)
     v.startDate.setDate(endDate - 7)
+
+    // create graph
+    v.createGraph()
 
     // set date pickers values
     $("#date-picker1").combodate("setValue", v.startDate)
     $("#date-picker2").combodate("setValue", v.endDate)
     changeDateLock = false
 
+    // update the values of the visualization
     v.update()
 })
 
@@ -179,11 +181,10 @@ class Visualization {
     data;
     spinner;
     requestNum = 0;
-
     graphData = {
         type: 'line',
         data: {
-            labels: [1, 2, 3, 4, 5],
+            labels: [],
             datasets: [{
                 label: '',
                 data: [],
@@ -202,6 +203,12 @@ class Visualization {
                 duration: 200
             },
             scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'day',
+                    }
+                },
                 y: {
                     type: 'linear',
                     display: true,
@@ -215,37 +222,22 @@ class Visualization {
             },
         },
     };
-    visState = "graph" // options: graph, table
+    graph;
+    viewMode = "graph"; // options: graph, table
 
     constructor() {
 
-    }
-    setViewMode(val) {
-        if (['table', 'graph'].includes(val)) {
-            viewMode = val
-        } else {
-            throw new TypeError("val must be either \"graph\" or \"table\" but it can't be " + val)
-        }
     }
     update() {
         // update attributes
         this.selection1 = document.getElementById('selection1').value;
         this.selection2 = document.getElementById('selection2').value;
 
+        // get the data from the database
         this.getData()
-        // get data that is not yet loaded
-        //  -> Data will be of type object
+    }
+    updateTimeScale() {
 
-        // empty data, scale, labels
-        // setScale
-        // setLabels
-        // setVisData
-
-
-        // change in type of visualization
-        // remove Graph
-        // show Table
-        // or inverted
     }
     startSpinner() {
         this.spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'))
@@ -261,7 +253,7 @@ class Visualization {
             return
         }
         this.startSpinner()
-        this.requestNum++;
+        this.requestNum++
 
         if (window.XMLHttpRequest) { // try to create a request
             var request = new XMLHttpRequest();
@@ -288,6 +280,7 @@ class Visualization {
                     });
                 }
                 v.data = dataArray;
+                awaitDataResponse = false;
             }
         }
 
@@ -297,19 +290,32 @@ class Visualization {
 
         // send request
         let secondSelectionStr;
-if (this.selection2 == 'none') {
-    secondSelectionStr = '';
-} else {
-    secondSelectionStr = `, ${this.selection2}`;
-}
-let startDateStr = this.getDateStr(this.startDate)
-let endDateStr = this.getDateStr(this.endDate)
+        if (this.selection2 == 'none') {
+            secondSelectionStr = '';
+        } else {
+            secondSelectionStr = `, ${this.selection2}`;
+        }
+        let startDateStr = this.getDateStr(this.startDate)
+        let endDateStr = this.getDateStr(this.endDate)
 
-let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
-// console.log(requestStr)
-request.send(requestStr)
+        let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
+        // console.log(requestStr)
+        awaitDataResponse = true
+        request.send(requestStr)
     }
 
-createGraph(){ /*create the graph on top of canvas*/ }
-createTable(){/*display text: not available yet / noch nicht verfügbar*/ }
+    setViewMode(val) {
+        if (['table', 'graph'].includes(val)) {
+            this.viewMode = val
+        } else {
+            throw new TypeError("val must be either \"graph\" or \"table\" but it can't be " + val)
+        }
+    }
+
+    createGraph() {
+        // create graph
+        let context = document.querySelector('canvas')
+        this.graph = new Chart(context, this.graphData)
+    }
+    createTable() {/*display text: not available yet / noch nicht verfügbar*/ }
 }
