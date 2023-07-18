@@ -30,18 +30,23 @@ function connectToDatabase() {
 
 $conn = connectToDatabase();
 
+// query values
+$queryValuesString = "entryDate, $selection1" . $selection2;
+
 // get Data from Database
-$sqlQuery = "SELECT entryDate, $selection1 $selection2 FROM weatherdata WHERE entryDate BETWEEN '$start' AND '$end';";
+$sqlQuery = "SELECT $queryValuesString FROM weatherdata WHERE entryDate BETWEEN '$start' AND '$end';";
 // echo $sqlQuery;
 // return;
 $result = mysqli_query($conn, $sqlQuery);
 $rows = mysqli_fetch_all($result);
 // $rows is a two dimensional array
+
 if (sizeof($rows) <= 0) {
 	echo 'no data returned';
 	return;
 }
-$transmission_str = '';
+
+$transmission_str = $queryValuesString . '&';
 // transform into string
 for($i=0; $i < sizeof($rows)-1; $i++){
 

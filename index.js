@@ -2,7 +2,8 @@
 // flags
 var changeDateLock, // locks the execution for the event listener changeDate()
     dateWarningActive = false, // shows, that the starting and the end date values are in the wrong order
-    awaitDataResponse = false; // shows that db data is being requested
+    requestNum = 0; // number of requests sent -> caps the maximum number of open requests to 1
+    // awaitDataResponse = false; // shows that db data is being requested
 
 var spinnerOptions = {
     lines: 13,
@@ -184,14 +185,13 @@ class Visualization {
     graphData = {
         type: 'line',
         data: {
-            labels: [],
             datasets: [{
-                label: '',
+                label: 'temperature',
                 data: [],
                 borderWidth: 1,
                 yAxisID: 'y'
             }, {
-                label: '',
+                label: 'humidity',
                 data: [],
                 borderWidth: 1,
                 yAxisID: 'y1'
@@ -249,11 +249,11 @@ class Visualization {
         return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
     }
     getData() {
-        if (this.requestNum > 0) {
+        if (requestNum > 0) {
             return
         }
         this.startSpinner()
-        this.requestNum++
+        requestNum++
 
         if (window.XMLHttpRequest) { // try to create a request
             var request = new XMLHttpRequest();
@@ -268,19 +268,27 @@ class Visualization {
         request.onreadystatechange = function () {
             if (request.readyState == 4 && request.status == 200) {
                 v.stopSpinner()
-                v.requestNum--;
+                requestNum--;
+
                 let resultString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
-                let tempArray;
-                let dataArray = [];
-                if (resultString != "no data returned") {
-                    // decode received data String
-                    tempArray = resultString.split('&')
-                    tempArray.forEach(function (currentVal, i) {
-                        dataArray.push(currentVal.split('|'));
-                    });
+                if (resultString == "no data returned") {
+                    v.data = [];
+                    return;
                 }
-                v.data = dataArray;
-                awaitDataResponse = false;
+                let dataList = [];
+                // decode received data String into list of objects
+                let tempArray = resultString.split('&');
+                let valueKeys = tempArray.shift().split(', '); // get first entry of tempArray and create valueKeys from it
+                tempArray.forEach(function (currentVal, i) {
+                    let newDataObj = {};
+                    let values = currentVal.split('|');
+                    for (const [index, key] of valueKeys.entries()) {
+                        newDataObj[key] = values[index]
+                    }
+                    dataList.push(newDataObj);
+                });
+                v.data = dataList;
+                // awaitDataResponse = false;
             }
         }
 
@@ -300,7 +308,7 @@ class Visualization {
 
         let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
         // console.log(requestStr)
-        awaitDataResponse = true
+        // awaitDataResponse = true
         request.send(requestStr)
     }
 
