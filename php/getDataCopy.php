@@ -34,7 +34,7 @@ $conn = connectToDatabase();
 $queryValuesString = "entryDate, $selection1" . $selection2;
 
 // get Data from Database
-$sqlQuery = "SELECT $queryValuesString FROM weatherdata WHERE entryDate BETWEEN '$start' AND '$end';";
+$sqlQuery = "SELECT $queryValuesString FROM weatherdata WHERE entryDate BETWEEN '$start' AND '$end' ORDER BY entryDate ASC;";
 // echo $sqlQuery;
 // return;
 $result = mysqli_query($conn, $sqlQuery);

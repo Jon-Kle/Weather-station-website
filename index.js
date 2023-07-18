@@ -3,7 +3,7 @@
 var changeDateLock, // locks the execution for the event listener changeDate()
     dateWarningActive = false, // shows, that the starting and the end date values are in the wrong order
     requestNum = 0; // number of requests sent -> caps the maximum number of open requests to 1
-    // awaitDataResponse = false; // shows that db data is being requested
+// awaitDataResponse = false; // shows that db data is being requested
 
 var spinnerOptions = {
     lines: 13,
@@ -186,42 +186,21 @@ class Visualization {
         type: 'line',
         data: {
             datasets: [{
-                label: 'temperature',
-                data: [],
-                borderWidth: 1,
-                yAxisID: 'y'
-            }, {
-                label: 'humidity',
-                data: [],
-                borderWidth: 1,
-                yAxisID: 'y1'
-            }
-            ]
+                data: [{'entryDate': new Date(), temp: NaN}, {'entryDate': new Date(), temp: NaN}]
+            }]
         },
         options: {
-            animation: {
-                duration: 200
+            parsing: {
+                xAxisKey: 'entryDate',
+                yAxisKey: 'temp'
             },
             scales: {
                 x: {
                     type: 'time',
-                    time: {
-                        unit: 'day',
-                    }
-                },
-                y: {
-                    type: 'linear',
-                    display: true,
-                    position: 'left'
-                },
-                y1: {
-                    type: 'linear',
-                    display: true,
-                    position: 'right'
                 }
-            },
-        },
-    };
+            }
+        }
+    }
     graph;
     viewMode = "graph"; // options: graph, table
 
@@ -283,11 +262,29 @@ class Visualization {
                     let newDataObj = {};
                     let values = currentVal.split('|');
                     for (const [index, key] of valueKeys.entries()) {
-                        newDataObj[key] = values[index]
+                        if (key == 'entryDate') {
+                            // transform into date object
+                            let dateAndTime = values[index].split(' ')
+                            let dateList = dateAndTime[0].split('-')
+                            let timeList = dateAndTime[1].split(':')
+                            let year = Number(dateList[0])
+                            let monthIndex = Number(dateList[1]) - 1
+                            let day = Number(dateList[2])
+                            let hour = Number(timeList[0])
+                            let minute = Number(timeList[1])
+                            newDataObj[key] = new Date(year, monthIndex, day, hour, minute)
+                        } else if (['temp', 'pressure', 'hum', 'windspeed', 'rainrate', 'uvindex'].includes(key)) {
+                            // transform into number
+                            newDataObj[key] = Number(values[index])
+                        }
                     }
                     dataList.push(newDataObj);
                 });
-                v.data = dataList;
+                // v.data = dataList;
+                v.graph.data.datasets[0].data = dataList
+                v.graph.update()
+                // v.createGraph()
+                // console.log(v.data)
                 // awaitDataResponse = false;
             }
         }
