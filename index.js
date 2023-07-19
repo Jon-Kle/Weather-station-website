@@ -53,10 +53,13 @@ $(document).ready(function () {
     // visualization object
     v = new Visualization();
 
-    // set ending and start date for date pickers
-    // starting interval is 1 week
+    // set ending and start dates for date pickers (starting interval is 1 week)
+    // get endDate
     v.endDate = normalizeDate(new Date())
-    v.endDate.setDate(v.endDate.getDate() + 1)
+    // calculate endDateExtended (+24h)
+    v.endDateExtended = new Date(v.endDate)
+    v.endDateExtended.setDate(v.endDate.getDate() + 1)
+    // calculate startDate
     let endDate = v.endDate.getDate()
     v.startDate = new Date(v.endDate)
     v.startDate.setDate(endDate - 7)
@@ -145,38 +148,46 @@ function changeDate(selectorIndex) {
         return
     }
     if (selectorIndex == 0) {
+        // get new value as string
         let dateStr = $("#date-picker1").combodate('getValue', 'YYYY-M-DD')
+        // parse string into date
         let dateArray = dateStr.split('-')
         let newDate = new Date(v.startDate)
         newDate.setYear(Number(dateArray[0]))
         newDate.setMonth(Number(dateArray[1]) - 1)
         newDate.setDate(Number(dateArray[2]))
-        if (newDate >= v.endDate) {
-            $(".selection")[2].style.backgroundColor = '#bf1717'
+        // warning for overlapping date values
+        if (newDate >= v.endDateExtended) {
+            $(".selection")[2].style.backgroundColor = '#bf1717' // red
             dateWarningActive = true
         } else {
-            $(".selection")[2].style.backgroundColor = '#3b8ec2'
-            $(".selection")[3].style.backgroundColor = '#3b8ec2'
+            $(".selection")[2].style.backgroundColor = '#3b8ec2' // blue
+            $(".selection")[3].style.backgroundColor = '#3b8ec2' // blue
             dateWarningActive = false
         }
         v.startDate = new Date(newDate)
     } else if (selectorIndex == 1) {
-        let dateStr = $("#date-picker2").combodate('getValue', 'YYYY-M-DD')
-        let dateArray = dateStr.split('-')
-        let newDate = new Date(v.endDate)
-        newDate.setYear(Number(dateArray[0]))
-        newDate.setMonth(Number(dateArray[1]) - 1)
-        newDate.setDate(Number(dateArray[2]))
-        if (newDate <= v.startDate) {
-            $(".selection")[3].style.backgroundColor = '#bf1717'
-            dateWarningActive = true
+        // get new value a string
+        let dateStr = $("#date-picker2").combodate('getValue', 'YYYY-M-DD');
+        // parse string into date
+        let dateArray = dateStr.split('-');
+        let newDate = new Date(v.endDate);
+        newDate.setYear(Number(dateArray[0]));
+        newDate.setMonth(Number(dateArray[1]) - 1);
+        newDate.setDate(Number(dateArray[2]));
+        let newDateExtended = new Date(newDate);
+        newDateExtended.setDate(newDate.getDate() + 1);
+        // warning for overlapping date values
+        if (newDateExtended <= v.startDate) {
+            $(".selection")[3].style.backgroundColor = '#bf1717'; // red
+            dateWarningActive = true;
         } else {
-            $(".selection")[2].style.backgroundColor = '#3b8ec2'
-            $(".selection")[3].style.backgroundColor = '#3b8ec2'
-            dateWarningActive = false
+            $(".selection")[2].style.backgroundColor = '#3b8ec2'; // blue
+            $(".selection")[3].style.backgroundColor = '#3b8ec2'; // blue
+            dateWarningActive = false;
         }
-        v.endDate = new Date(newDate)
-        // console.log(v.endDate)
+        v.endDate = new Date(newDate);
+        v.endDateExtended = new Date(newDateExtended);
     } else {
         throw TypeError(`Selector Index must be valid index! It can't be ${selectorIndex}`)
     }
@@ -191,6 +202,7 @@ class Visualization {
     selection2; // second selected value
     startDate; // starting date for visualization
     endDate; // ending date for visualization
+    endDateExtended; // same as endDate only 24h are added to it
     data; // list of data objects filled by getData() method
     graph; // the graph object
     initialGraphData = {
