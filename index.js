@@ -5,6 +5,8 @@ var changeDateLock, // locks the execution for the event listener changeDate()
     requestNum = 0; // number of requests sent -> caps the maximum number of open requests to 1
 // awaitDataResponse = false; // shows that db data is being requested
 
+// the spinner for loading data
+var spinner;
 var spinnerOptions = {
     lines: 13,
     length: 34,
@@ -28,53 +30,49 @@ var spinnerOptions = {
     position: 'relative'
 }
 
-// When the page is loaded, resize the link panel 
-// and the content panel.
+// When the page is loaded:
+// - resize the link and content panel
+// - initialize the date pickers
+// - create a new visualization
+// - calculate the initial date values
+// - create a new graph
+// - call update() method of visualization
 $(document).ready(function () {
+    // adjust site appearance
     resizeLinkPanel();
     resizeContent();
 
-    // visualization object
-    v = new Visualization();
-
+    // create date pickers
     // stops execution of changeDate() function to remove unnecessary calculations and bugs
     changeDateLock = true
-
-    // create date pickers
     // this calls changeDate() which gets blocked by changeDateLock
     let datePickerData = { minYear: 2012, maxYear: (new Date().getFullYear()), firstItem: "none", smartDays: true }
     $("#date-picker1").combodate(datePickerData);
     $("#date-picker2").combodate(datePickerData);
 
-    //set ending and start date for date pickers
+    // visualization object
+    v = new Visualization();
+
+    // set ending and start date for date pickers
+    // starting interval is 1 week
     v.endDate = normalizeDate(new Date())
     v.endDate.setDate(v.endDate.getDate() + 1)
     let endDate = v.endDate.getDate()
     v.startDate = new Date(v.endDate)
     v.startDate.setDate(endDate - 7)
-
-    // create graph
-    v.createGraph()
-
     // set date pickers values
     $("#date-picker1").combodate("setValue", v.startDate)
     $("#date-picker2").combodate("setValue", v.endDate)
     changeDateLock = false
 
+    // create graph
+    v.createGraph()
+
     // update the values of the visualization
     v.update()
 })
 
-// set hours, minutes and seconds as well as ms to 0
-function normalizeDate(date) {
-    newDate = new Date(date);
-    newDate.setHours(0);
-    newDate.setMinutes(0);
-    newDate.setSeconds(0);
-    newDate.setMilliseconds(0);
-    return newDate;
-}
-
+// ---------- Layout ----------
 // Do the same as $(document).ready() just, when the window gets resized
 window.onresize = function (event) {
     resizeLinkPanel()
@@ -95,7 +93,6 @@ function resizeLinkPanel() {
 function resizeContent() {
     $('#content').animate({ 'min-height': $(window).height() - 50 - $("#control").outerHeight(true) + 'px' }, 200);
 }
-// ----------------------
 // Change the view on the control panels
 function switchControl(id) {
     var state = $('#' + id).css('display'); // state of the clicked panel
@@ -125,7 +122,24 @@ function switchControl(id) {
     }
 }
 
-// update the date variables of the visualization
+// -------- Utilities --------
+// set hours, minutes and seconds as well as ms of date object to 0
+function normalizeDate(date) {
+    newDate = new Date(date);
+    newDate.setHours(0);
+    newDate.setMinutes(0);
+    newDate.setSeconds(0);
+    newDate.setMilliseconds(0);
+    return newDate;
+}
+function startSpinner() {
+    spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'));
+}
+function stopSpinner() {
+    spinner.stop();
+}
+
+// event handler for the date pickers
 function changeDate(selectorIndex) {
     if (changeDateLock) {
         return
@@ -146,7 +160,6 @@ function changeDate(selectorIndex) {
             dateWarningActive = false
         }
         v.startDate = new Date(newDate)
-        // console.log(v.startDate)
     } else if (selectorIndex == 1) {
         let dateStr = $("#date-picker2").combodate('getValue', 'YYYY-M-DD')
         let dateArray = dateStr.split('-')
@@ -170,19 +183,17 @@ function changeDate(selectorIndex) {
     v.update()
 }
 
+// class that handles the data as well as the visualization
 class Visualization {
     // variables
-    labelFrequency;
-    selection1;
-    selection2;
-    viewMode;
-    startDate;
-    endDate;
-    dateRange = 'month';
-    data;
-    spinner;
-    requestNum = 0;
-    graphData = {
+    viewMode = "graph"; // either graph or table
+    selection1; // first selected value
+    selection2; // second selected value
+    startDate; // starting date for visualization
+    endDate; // ending date for visualization
+    data; // list of data objects filled by getData() method
+    graph; // the graph object
+    initialGraphData = {
         type: 'line',
         data: {
             datasets: [{
@@ -201,12 +212,7 @@ class Visualization {
             }
         }
     }
-    graph;
-    viewMode = "graph"; // options: graph, table
 
-    constructor() {
-
-    }
     update() {
         // update attributes
         this.selection1 = document.getElementById('selection1').value;
@@ -215,23 +221,11 @@ class Visualization {
         // get the data from the database
         this.getData()
     }
-    updateTimeScale() {
-
-    }
-    startSpinner() {
-        this.spinner = new Spinner(spinnerOptions).spin(document.getElementById('content'))
-    }
-    stopSpinner() {
-        this.spinner.stop();
-    }
-    getDateStr(date) {
-        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
-    }
     getData() {
         if (requestNum > 0) {
             return
         }
-        this.startSpinner()
+        startSpinner()
         requestNum++
 
         if (window.XMLHttpRequest) { // try to create a request
@@ -246,7 +240,7 @@ class Visualization {
 
         request.onreadystatechange = function () {
             if (request.readyState == 4 && request.status == 200) {
-                v.stopSpinner()
+                stopSpinner()
                 requestNum--;
 
                 let resultString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
@@ -309,6 +303,12 @@ class Visualization {
         request.send(requestStr)
     }
 
+    // utils
+    getDateStr(date) {
+        return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
+    }
+
+    // view mode
     setViewMode(val) {
         if (['table', 'graph'].includes(val)) {
             this.viewMode = val
@@ -316,11 +316,10 @@ class Visualization {
             throw new TypeError("val must be either \"graph\" or \"table\" but it can't be " + val)
         }
     }
-
     createGraph() {
         // create graph
         let context = document.querySelector('canvas')
-        this.graph = new Chart(context, this.graphData)
+        this.graph = new Chart(context, this.initialGraphData)
     }
     createTable() {/*display text: not available yet / noch nicht verfügbar*/ }
 }
