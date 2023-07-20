@@ -320,44 +320,14 @@ class Visualization {
             alert('Ajax is not supported by this browser!');
         }
 
+        // handle answer of request
         request.onreadystatechange = function () {
             if (request.readyState == 4 && request.status == 200) {
                 stopSpinner()
                 requestNum--;
 
-                let resultString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
-                if (resultString == "no data returned") {
-                    v.data = [];
-                    v.updateGraph()
-                    return;
-                }
-                let dataList = [];
-                // decode received data String into list of objects
-                let tempArray = resultString.split('&');
-                let valueKeys = tempArray.shift().split(', '); // get first entry of tempArray and create valueKeys from it
-                tempArray.forEach(function (currentVal, i) {
-                    let newDataObj = {};
-                    let values = currentVal.split('|');
-                    for (const [index, key] of valueKeys.entries()) {
-                        if (key == 'entryDate') {
-                            // transform into date object
-                            let dateAndTime = values[index].split(' ')
-                            let dateList = dateAndTime[0].split('-')
-                            let timeList = dateAndTime[1].split(':')
-                            let year = Number(dateList[0])
-                            let monthIndex = Number(dateList[1]) - 1
-                            let day = Number(dateList[2])
-                            let hour = Number(timeList[0])
-                            let minute = Number(timeList[1])
-                            newDataObj[key] = new Date(year, monthIndex, day, hour, minute)
-                        } else if (['temp', 'pressure', 'hum', 'windspeed', 'rainrate', 'uvindex'].includes(key)) {
-                            // transform into number
-                            newDataObj[key] = Number(values[index])
-                        }
-                    }
-                    dataList.push(newDataObj);
-                });
-                v.data = dataList;
+                let responseString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
+                v.data = v.parseDataStr(responseString)
                 v.updateGraph()
             }
         }
@@ -384,6 +354,39 @@ class Visualization {
     // utils
     getDateStr(date) {
         return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
+    }
+    parseDataStr(dataStr) {
+        if (dataStr == 'no data returned') {
+            return []
+        }
+        let dataList = [];
+        let sectionArray = dataStr.split('&');
+        let keys = sectionArray.shift().split(', ');
+        sectionArray.forEach((currentVal, i) => {
+            let newDataObj = {};
+            let values = currentVal.split('|')
+            for (const [index, key] of keys.entries()) {
+                if (key == 'entryDate') {
+                    // transform into date object
+                    // get date components from date string
+                    let dateAndTime = values[index].split(' ')
+                    let dateList = dateAndTime[0].split('-')
+                    let timeList = dateAndTime[1].split(':')
+                    let year = Number(dateList[0])
+                    let monthIndex = Number(dateList[1]) - 1
+                    let day = Number(dateList[2])
+                    let hour = Number(timeList[0])
+                    let minute = Number(timeList[1])
+                    // create new date
+                    newDataObj[key] = new Date(year, monthIndex, day, hour, minute)
+                } else if (['temp', 'pressure', 'hum', 'windspeed', 'rainrate', 'uvindex'].includes(key)) {
+                    // transform into number
+                    newDataObj[key] = Number(values[index])
+                }
+            }
+            dataList.push(newDataObj)
+        });
+        return dataList;
     }
 
     // view mode
