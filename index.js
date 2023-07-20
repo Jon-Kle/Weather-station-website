@@ -3,7 +3,6 @@
 var changeDateLock, // locks the execution for the event listener changeDate()
     dateWarningActive = false, // shows, that the starting and the end date values are in the wrong order
     requestNum = 0; // number of requests sent -> caps the maximum number of open requests to 1
-// awaitDataResponse = false; // shows that db data is being requested
 
 // the spinner for loading data
 var spinner;
@@ -205,22 +204,33 @@ class Visualization {
     endDateExtended; // same as endDate only 24h are added to it
     data; // list of data objects filled by getData() method
     graph; // the graph object
+    datasetNum = 1; // number of currently used datasets
     initialGraphData = {
         type: 'line',
         data: {
             datasets: [{
-                data: [{'entryDate': new Date(), temp: NaN}, {'entryDate': new Date(), temp: NaN}]
-            }]
+                // data: [],
+                pointRadius: 0,
+                parsing: {
+                    xAxisKey: 'entryDate',
+                    yAxisKey: 'temp'
+                },
+                yAxisID: 'y',
+            }
+            ]
         },
         options: {
-            parsing: {
-                xAxisKey: 'entryDate',
-                yAxisKey: 'temp'
-            },
             scales: {
                 x: {
                     type: 'time',
-                }
+                },
+                y: {
+                    title: {
+                        text: 'Temperature (°C)',
+                        display: true,
+                    },
+                    beginAtZero: true,
+                },
             }
         }
     }
@@ -232,6 +242,66 @@ class Visualization {
 
         // get the data from the database
         this.getData()
+    }
+    updateGraph() {
+        // templates
+        let y2AxisTemplate = {
+            title: {
+                display: true,
+                text: ''
+            },
+            position: 'right',
+            beginAtZero: true,
+        }
+        let dataset2Template = {
+            pointRadius: 0,
+            parsing: {
+                xAxisKey: 'entryDate',
+            },
+            yAxisID: 'y2'
+        }
+
+        // dataset 1
+        // get label1
+        let name1 = getName(this.selection1)
+        let unit1 = getUnit(this.selection1)
+        let label1 = name1 + ' (' + unit1 + ')'
+        // update dataset and scale options
+        this.graph.data.datasets[0].label = label1;
+        this.graph.data.datasets[0].data = this.data
+        this.graph.data.datasets[0].parsing.yAxisKey = this.selection1
+        this.graph.options.scales.y.title.text = label1
+
+        // dataset 2 optionally
+        if (this.selection2 != 'none') {
+            if (this.datasetNum <= 1) {
+                this.datasetNum++;
+                // add dataset 2
+                this.graph.data.datasets.push(dataset2Template)
+                // add scale y2
+                this.graph.options.scales.y2 = y2AxisTemplate;
+            }
+
+            // get label2
+            let name2 = getName(this.selection2)
+            let unit2 = getUnit(this.selection2)
+            let label2 = name2 + ' (' + unit2 + ')'
+
+            // update dataset and scale options
+            this.graph.data.datasets[1].label = label2;
+            this.graph.data.datasets[1].data = this.data
+            this.graph.data.datasets[1].parsing.yAxisKey = this.selection2
+            this.graph.options.scales.y2.title.text = label2
+        } else if (this.datasetNum >= 2) {
+            this.datasetNum--;
+            // remove dataset 2
+            this.graph.data.datasets.pop()
+            // remove scale y2
+            delete this.graph.options.scales.y2;
+        }
+
+        this.graph.update()
+        resizeContent()
     }
     getData() {
         if (requestNum > 0) {
@@ -258,6 +328,7 @@ class Visualization {
                 let resultString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
                 if (resultString == "no data returned") {
                     v.data = [];
+                    v.updateGraph()
                     return;
                 }
                 let dataList = [];
@@ -286,12 +357,8 @@ class Visualization {
                     }
                     dataList.push(newDataObj);
                 });
-                // v.data = dataList;
-                v.graph.data.datasets[0].data = dataList
-                v.graph.update()
-                // v.createGraph()
-                // console.log(v.data)
-                // awaitDataResponse = false;
+                v.data = dataList;
+                v.updateGraph()
             }
         }
 
@@ -311,7 +378,6 @@ class Visualization {
 
         let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
         // console.log(requestStr)
-        // awaitDataResponse = true
         request.send(requestStr)
     }
 
