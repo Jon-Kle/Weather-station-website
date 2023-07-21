@@ -383,7 +383,7 @@ class Visualization {
             secondSelectionStr = `, ${this.selection2}`;
         }
         let startDateStr = this.getDateStr(this.startDate)
-        let endDateStr = this.getDateStr(this.endDate)
+        let endDateStr = this.getDateStr(this.endDateExtended)
 
         let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
         // console.log(requestStr)
