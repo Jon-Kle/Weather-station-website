@@ -52,7 +52,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 								<option value="uvindex">UV-index</option>
 						</select>
 					</div>
-					<div class="selection">
+					<div class="selection newline">
 						<label>Start Date</label>
 						<div class="date"><input type="text" id="date-picker1" onchange="changeDate(0)" data-format="DD-MM-YYYY" data-template="D MMM YYYY" name="date"></div>
 					</div>

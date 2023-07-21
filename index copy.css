@@ -73,6 +73,9 @@ body {
 	width: 240px;
 	height: 60px;
 }
+.selection.newline {
+	clear: left;
+}
 .selection label {
 	padding: 0px 4px 0px 4px;
 	font-weight: bold;
