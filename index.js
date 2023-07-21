@@ -356,13 +356,18 @@ class Visualization {
         return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} 00:00:00`
     }
     parseDataStr(dataStr) {
-        if (dataStr == 'no data returned') {
-            return []
-        }
+        // variables
+        let entryList = [];
         let dataList = [];
+
+        if (dataStr == 'no data returned') {
+            return entryList;
+        }
+
+        // parse existing data
         let sectionArray = dataStr.split('&');
         let keys = sectionArray.shift().split(', ');
-        sectionArray.forEach((currentVal, i) => {
+        for (let currentVal of sectionArray) {
             let newDataObj = {};
             let values = currentVal.split('|')
             for (const [index, key] of keys.entries()) {
@@ -385,8 +390,37 @@ class Visualization {
                 }
             }
             dataList.push(newDataObj)
-        });
-        return dataList;
+        }
+
+        // fill gaps with NaN
+        let dataIndex = 0 // index of data
+        let currentDate = new Date(this.startDate)
+        while (true) {
+            if (this.compareDates(5*60*1000, currentDate, dataList[dataIndex]['entryDate'])) {
+                entryList.push(dataList[dataIndex])
+                if (dataIndex < dataList.length - 1) {
+                    dataIndex++;
+                }
+            } else {
+                let newEntryObj = {'entryDate': new Date(currentDate)};
+                newEntryObj[keys[1]] = NaN;
+                if (keys.length > 2) {
+                    newEntryObj[keys[2]] = NaN;
+                }
+                entryList.push(newEntryObj)
+            }
+
+            currentDate.setMinutes(currentDate.getMinutes() + 30)
+            if (currentDate >= this.endDateExtended) {
+                break;
+            }
+        }
+        console.log(entryList)
+        return entryList;
+    }
+    compareDates (precisionInMS, date1, date2) {
+        let dateDiff = Math.abs(date1 - date2)
+        return dateDiff <= precisionInMS ? true : false
     }
 
     // view mode
