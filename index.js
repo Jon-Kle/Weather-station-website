@@ -45,7 +45,13 @@ $(document).ready(function () {
     // stops execution of changeDate() function to remove unnecessary calculations and bugs
     changeDateLock = true
     // this calls changeDate() which gets blocked by changeDateLock
-    let datePickerData = { minYear: 2012, maxYear: (new Date().getFullYear()), firstItem: "none", smartDays: true }
+    let datePickerData = {
+        minYear: 2012,
+        maxYear: (new Date().getFullYear()),
+        firstItem: "none",
+        smartDays: true,
+        yearDescending: false,
+    }
     $("#date-picker1").combodate(datePickerData);
     $("#date-picker2").combodate(datePickerData);
 
@@ -238,6 +244,15 @@ class Visualization {
             scales: {
                 x: {
                     type: 'time',
+                    time: {
+                        displayFormats: {
+                            day: 'D. MMMM',
+                            hour: 'H:mm',
+                        },
+                    },
+                    ticks: {
+                        minRotation: 10,
+                    },
                 },
                 y: {
                     title: {
