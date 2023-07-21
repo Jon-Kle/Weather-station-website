@@ -73,6 +73,8 @@ $(document).ready(function () {
     $("#date-picker2").combodate("setValue", v.endDate)
     changeDateLock = false
 
+    // use the german names for the months
+    moment.locale("de")
     // create graph
     v.createGraph()
 
@@ -249,6 +251,7 @@ class Visualization {
                             day: 'D. MMMM',
                             hour: 'H:mm',
                         },
+                        tooltipFormat: 'D. MMMM, YYYY, H:mm'
                     },
                     ticks: {
                         minRotation: 10,

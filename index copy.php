@@ -13,7 +13,7 @@ JQuery documentation: https://api.jquery.com/jQuery/
 	<script type="text/javascript" src="js/chart.umd.js"></script>
 	<script type="text/javascript" src="js/jquery-2.1.4.min.js"></script>
 	<script type="text/javascript" src="js/spin.min.js"></script>
-	<script type="text/javascript" src="js/moment.min.js"></script>
+	<script type="text/javascript" src="js/moment-with-locales.min.js"></script>
 	<script type="text/javascript" src="js/combodate.js"></script>
 	<script type="text/javascript" src="js/getColumnInfo.js"></script>
 	<script type="text/javascript" src="index.js"></script>
