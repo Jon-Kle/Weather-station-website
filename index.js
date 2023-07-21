@@ -376,7 +376,7 @@ class Visualization {
         }
 
         // initialize the request
-        request.open('POST', 'php/getDataCopy.php');
+        request.open('POST', 'php/getData.php');
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
         // send request
