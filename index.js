@@ -221,8 +221,6 @@ class Visualization {
         type: 'line',
         data: {
             datasets: [{
-                // data: [],
-                pointRadius: 0,
                 parsing: {
                     xAxisKey: 'entryDate',
                     yAxisKey: 'temp'
@@ -234,7 +232,7 @@ class Visualization {
         options: {
             plugins: {
                 legend: {
-                    onClick: (event, legendItem, legend) => {},
+                    onClick: (event, legendItem, legend) => { },
                 },
             },
             scales: {
@@ -271,7 +269,6 @@ class Visualization {
             beginAtZero: true,
         }
         let dataset2Template = {
-            pointRadius: 0,
             parsing: {
                 xAxisKey: 'entryDate',
             },
@@ -290,6 +287,8 @@ class Visualization {
         this.graph.data.datasets[0].label = label1;
         this.graph.data.datasets[0].data = this.data;
         this.graph.data.datasets[0].parsing.yAxisKey = this.selection1;
+        this.graph.data.datasets[0].backgroundColor = getColor(this.selection1).backgroundColor;
+        this.graph.data.datasets[0].borderColor = getColor(this.selection1).borderColor;
         this.graph.options.scales.y.title.text = label1;
 
         // dataset 2 optionally
@@ -311,6 +310,8 @@ class Visualization {
             this.graph.data.datasets[1].label = label2;
             this.graph.data.datasets[1].data = this.data
             this.graph.data.datasets[1].parsing.yAxisKey = this.selection2
+            this.graph.data.datasets[1].backgroundColor = getColor(this.selection2).backgroundColor;
+            this.graph.data.datasets[1].borderColor = getColor(this.selection2).borderColor;
             this.graph.options.scales.y2.title.text = label2
         } else if (this.datasetNum >= 2) {
             this.datasetNum--;
@@ -438,7 +439,6 @@ class Visualization {
                 break;
             }
         }
-        // console.log(entryList)
         return entryList;
     }
     compareDates(date1, date2, precisionInMS) {

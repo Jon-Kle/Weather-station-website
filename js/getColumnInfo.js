@@ -1,35 +1,38 @@
-function getColor(type, alpha) {
-	// return alpha["0"];
-	
-	var color;
-	var colorArray = [];
+function getColor(type) {
+	let colors = {}
 	switch (type) {
-			case "temp":
-				color = "rgba(231, 76, 60, ";
-				break;
-			case "pressure":
-				color = "rgba(10, 100, 10, ";
-				break;
-			case "hum":
-				color = "rgba(52, 152, 219, ";
-				break;
-			case "windspeed":
-				color = "rgba(52, 152, 219, ";
-				break;
-			case "winddir":
-				color = "rgba(52, 152, 219, ";
-				break;
+		case "temp":
+			colors.backgroundColor = '#E6332B'
+			colors.borderColor = '#AE251D'
+			break;
+		case "pressure":
+			// colors.backgroundColor = '#326084'
+			// colors.borderColor = '#0A344E'
+			colors.backgroundColor = '#5CC85C'
+			colors.borderColor = '#1D771D'
+			break;
+		case "hum":
+			colors.backgroundColor = '#3498DB'
+			colors.borderColor = '#0569AC'
+			break;
+		case "windspeed":
+			colors.backgroundColor = '#73D7FF'
+			colors.borderColor = '#2F93D6'
+			break;
+		case "winddir":
+			colors.backgroundColor = ''
+			colors.borderColor = ''
+			break;
 			case "rainrate":
-				color = "rgba(149, 165, 166, ";
-				break;
-			case "uvindex":
-				color = "rgba(192, 57, 43, ";
-				break;
+			colors.backgroundColor = '#9D90F4'
+			colors.borderColor = '#6B5EC2'
+			break;
+		case "uvindex":
+			colors.backgroundColor = '#C631F9'
+			colors.borderColor = '#9E09D1'
+			break;
 	}
-	for (var i = 0; i < alpha.length; i++) {
-		colorArray.push(color + alpha[i] + ")");
-	}
-	return colorArray;
+	return colors;
 }
 
 function getName(type) {
