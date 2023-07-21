@@ -232,6 +232,11 @@ class Visualization {
             ]
         },
         options: {
+            plugins: {
+                legend: {
+                    onClick: (event, legendItem, legend) => {},
+                },
+            },
             scales: {
                 x: {
                     type: 'time',
