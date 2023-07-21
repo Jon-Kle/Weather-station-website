@@ -238,11 +238,6 @@ class Visualization {
             ]
         },
         options: {
-            plugins: {
-                legend: {
-                    onClick: (event, legendItem, legend) => { },
-                },
-            },
             scales: {
                 x: {
                     type: 'time',
@@ -264,7 +259,12 @@ class Visualization {
                     },
                     beginAtZero: true,
                 },
-            }
+            },
+            plugins: {
+                legend: {
+                    onClick: (event, legendItem, legend) => { },
+                },
+            },
         }
     }
 
@@ -308,6 +308,8 @@ class Visualization {
         this.graph.data.datasets[0].backgroundColor = getColor(this.selection1).backgroundColor;
         this.graph.data.datasets[0].borderColor = getColor(this.selection1).borderColor;
         this.graph.options.scales.y.title.text = label1;
+        // change visual for pressure values
+        this.graph.options.scales.y.beginAtZero = this.selection1 == 'pressure' ? false : true;
 
         // dataset 2 optionally
         if (this.selection2 != 'none') {
@@ -331,6 +333,8 @@ class Visualization {
             this.graph.data.datasets[1].backgroundColor = getColor(this.selection2).backgroundColor;
             this.graph.data.datasets[1].borderColor = getColor(this.selection2).borderColor;
             this.graph.options.scales.y2.title.text = label2
+            // change visual for pressure values
+            this.graph.options.scales.y2.beginAtZero = this.selection2 == 'pressure' ? false : true;
         } else if (this.datasetNum >= 2) {
             this.datasetNum--;
             // remove dataset 2
