@@ -54,7 +54,7 @@ $(document).ready(function () {
 
     // set ending and start dates for date pickers (starting interval is 1 week)
     // get endDate
-    v.endDate = normalizeDate(new Date())
+    v.endDate = normalizeDate(new Date(), 'day')
     // calculate endDateExtended (+24h)
     v.endDateExtended = new Date(v.endDate)
     v.endDateExtended.setDate(v.endDate.getDate() + 1)
@@ -126,12 +126,24 @@ function switchControl(id) {
 
 // -------- Utilities --------
 // set hours, minutes and seconds as well as ms of date object to 0
-function normalizeDate(date) {
+function normalizeDate(date, range) {
     newDate = new Date(date);
-    newDate.setHours(0);
-    newDate.setMinutes(0);
-    newDate.setSeconds(0);
-    newDate.setMilliseconds(0);
+    switch (range) {
+        case 'day':
+            newDate.setHours(0);
+            newDate.setMinutes(0);
+            newDate.setSeconds(0);
+            newDate.setMilliseconds(0);
+            break;
+        case 'half-hour':
+            newDate.setSeconds(0)
+            newDate.setMilliseconds(0)
+            if (newDate.getMinutes() >= 45 || newDate.getMinutes() < 15) {
+                newDate.setMinutes(0)
+            } else if (15 <= newDate.getMinutes() && newDate.getMinutes() < 45) {
+                newDate.setMinutes(30)
+            }
+    }
     return newDate;
 }
 function startSpinner() {
@@ -260,17 +272,20 @@ class Visualization {
             },
             yAxisID: 'y2'
         }
+        // x Axis range
+        this.graph.options.scales.x.min = this.startDate;
+        this.graph.options.scales.x.max = this.endDateExtended;
 
         // dataset 1
         // get label1
-        let name1 = getName(this.selection1)
-        let unit1 = getUnit(this.selection1)
-        let label1 = name1 + ' (' + unit1 + ')'
+        let name1 = getName(this.selection1);
+        let unit1 = getUnit(this.selection1);
+        let label1 = name1 + ' (' + unit1 + ')';
         // update dataset and scale options
         this.graph.data.datasets[0].label = label1;
-        this.graph.data.datasets[0].data = this.data
-        this.graph.data.datasets[0].parsing.yAxisKey = this.selection1
-        this.graph.options.scales.y.title.text = label1
+        this.graph.data.datasets[0].data = this.data;
+        this.graph.data.datasets[0].parsing.yAxisKey = this.selection1;
+        this.graph.options.scales.y.title.text = label1;
 
         // dataset 2 optionally
         if (this.selection2 != 'none') {
@@ -394,15 +409,18 @@ class Visualization {
 
         // fill gaps with NaN
         let dataIndex = 0 // index of data
-        let currentDate = new Date(this.startDate)
+        // let currentDate = new Date(this.startDate)
+        let currentDate = new Date(dataList[0]['entryDate'])
+        currentDate = normalizeDate(currentDate, 'half-hour')
         while (true) {
-            if (this.compareDates(5*60*1000, currentDate, dataList[dataIndex]['entryDate'])) {
+            if (this.compareDates(currentDate, dataList[dataIndex]['entryDate'], 5 * 60 * 1000)) {
                 entryList.push(dataList[dataIndex])
-                if (dataIndex < dataList.length - 1) {
-                    dataIndex++;
+                dataIndex++;
+                if (dataIndex >= dataList.length) {
+                    break;
                 }
             } else {
-                let newEntryObj = {'entryDate': new Date(currentDate)};
+                let newEntryObj = { 'entryDate': new Date(currentDate) };
                 newEntryObj[keys[1]] = NaN;
                 if (keys.length > 2) {
                     newEntryObj[keys[2]] = NaN;
@@ -415,10 +433,10 @@ class Visualization {
                 break;
             }
         }
-        console.log(entryList)
+        // console.log(entryList)
         return entryList;
     }
-    compareDates (precisionInMS, date1, date2) {
+    compareDates(date1, date2, precisionInMS) {
         let dateDiff = Math.abs(date1 - date2)
         return dateDiff <= precisionInMS ? true : false
     }
