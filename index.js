@@ -83,7 +83,7 @@ $(document).ready(function () {
 })
 
 // ---------- Layout ----------
-// Do the same as $(document).ready() just, when the window gets resized
+// Do the same as $(document).ready(), when the window gets resized
 window.onresize = function (event) {
     resizeLinkPanel()
     resizeContent()
@@ -161,7 +161,7 @@ function stopSpinner() {
     spinner.stop();
 }
 
-// event handler for the date pickers
+// event handler for date pickers
 function changeDate(selectorIndex) {
     if (changeDateLock) {
         return
@@ -262,7 +262,7 @@ class Visualization {
             },
             plugins: {
                 legend: {
-                    onClick: (event, legendItem, legend) => { },
+                    onClick: (event, legendItem, legend) => { }, // disable all interactions with the legend
                 },
             },
         }
@@ -274,6 +274,7 @@ class Visualization {
         this.selection2 = document.getElementById('selection2').value;
 
         // get the data from the database
+        // this calls updateGraph() when the Data is received
         this.getData()
     }
     updateGraph() {
@@ -292,7 +293,8 @@ class Visualization {
             },
             yAxisID: 'y2'
         }
-        // x Axis range
+
+        // adjust x Axis range
         this.graph.options.scales.x.min = this.startDate;
         this.graph.options.scales.x.max = this.endDateExtended;
 
@@ -308,10 +310,10 @@ class Visualization {
         this.graph.data.datasets[0].backgroundColor = getColor(this.selection1).backgroundColor;
         this.graph.data.datasets[0].borderColor = getColor(this.selection1).borderColor;
         this.graph.options.scales.y.title.text = label1;
-        // change visual for pressure values
+        // change visual only for pressure values
         this.graph.options.scales.y.beginAtZero = this.selection1 == 'pressure' ? false : true;
 
-        // dataset 2 optionally
+        // dataset 2 (optionally)
         if (this.selection2 != 'none') {
             if (this.datasetNum <= 1) {
                 this.datasetNum++;
@@ -343,7 +345,9 @@ class Visualization {
             delete this.graph.options.scales.y2;
         }
 
+        // apply changes
         this.graph.update()
+        // correct size to fit the new graph
         resizeContent()
     }
     getData() {
@@ -353,7 +357,8 @@ class Visualization {
         startSpinner()
         requestNum++
 
-        if (window.XMLHttpRequest) { // try to create a request
+        // create new request
+        if (window.XMLHttpRequest) {
             var request = new XMLHttpRequest();
         }
         else if (window.ActiveXObject) { // method for older browsers
@@ -363,13 +368,14 @@ class Visualization {
             alert('Ajax is not supported by this browser!');
         }
 
-        // handle answer of request
+        // handler for the answer of the request
         request.onreadystatechange = function () {
             if (request.readyState == 4 && request.status == 200) {
                 stopSpinner()
                 requestNum--;
 
-                let responseString = request.responseText; // looks like: '2022-06-16 00:00:00|16.9&20...'
+                let responseString = request.responseText;
+                // console.log(responseString)
                 v.data = v.parseDataStr(responseString)
                 v.updateGraph()
             }
@@ -379,7 +385,7 @@ class Visualization {
         request.open('POST', 'php/getData.php');
         request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        // send request
+        // prepare payload for request
         let secondSelectionStr;
         if (this.selection2 == 'none') {
             secondSelectionStr = '';
@@ -388,7 +394,8 @@ class Visualization {
         }
         let startDateStr = this.getDateStr(this.startDate)
         let endDateStr = this.getDateStr(this.endDateExtended)
-
+        
+        // send request
         let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
         // console.log(requestStr)
         request.send(requestStr)
@@ -437,17 +444,21 @@ class Visualization {
 
         // fill gaps with NaN
         let dataIndex = 0 // index of data
-        // let currentDate = new Date(this.startDate)
         let currentDate = new Date(dataList[0]['entryDate'])
         currentDate = normalizeDate(currentDate, 'half-hour')
         while (true) {
+            // if Date value of data point matches currentDate
             if (this.compareDates(currentDate, dataList[dataIndex]['entryDate'], 5 * 60 * 1000)) {
+                // take over data point as entry
                 entryList.push(dataList[dataIndex])
                 dataIndex++;
                 if (dataIndex >= dataList.length) {
                     break;
                 }
-            } else {
+            }
+            // if Date value of data point doesn't match
+            else {
+                // make new entry with NaN as values, so the lines in the graph don't connect
                 let newEntryObj = { 'entryDate': new Date(currentDate) };
                 newEntryObj[keys[1]] = NaN;
                 if (keys.length > 2) {
@@ -456,6 +467,7 @@ class Visualization {
                 entryList.push(newEntryObj)
             }
 
+            // increment currentDate by 30 minutes
             currentDate.setMinutes(currentDate.getMinutes() + 30)
             if (currentDate >= this.endDateExtended) {
                 break;
@@ -469,6 +481,7 @@ class Visualization {
     }
 
     // view mode
+    // not used yet
     setViewMode(val) {
         if (['table', 'graph'].includes(val)) {
             this.viewMode = val
@@ -481,5 +494,5 @@ class Visualization {
         let context = document.querySelector('canvas')
         this.graph = new Chart(context, this.initialGraphData)
     }
-    createTable() {/*display text: not available yet / noch nicht verfügbar*/ }
+    createTable() {}
 }
