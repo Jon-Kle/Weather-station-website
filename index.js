@@ -375,7 +375,6 @@ class Visualization {
                 requestNum--;
 
                 let responseString = request.responseText;
-                // console.log(responseString)
                 v.data = v.parseDataStr(responseString)
                 v.updateGraph()
             }
@@ -410,12 +409,22 @@ class Visualization {
         let entryList = [];
         let dataList = [];
 
-        if (dataStr == 'no data returned') {
+        let sectionArray = dataStr.split('&');
+
+        if ([
+            'error when reading config file',
+            'error when connecting to database',
+            'error when requesting data',
+            'no data returned',
+            ''
+        ].includes(sectionArray[0])) {
+            console.log(sectionArray[0])
+            if (sectionArray[0] != 'no data returned') {
+                console.log(sectionArray[1])
+            }
             return entryList;
         }
-
         // parse existing data
-        let sectionArray = dataStr.split('&');
         let keys = sectionArray.shift().split(', ');
         for (let currentVal of sectionArray) {
             let newDataObj = {};

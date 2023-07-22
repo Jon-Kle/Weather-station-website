@@ -9,7 +9,7 @@ $start = $_POST['startDate'];
 $end = $_POST['endDate'];
 
 // echo $selection1, " ", $selection2, ' ', $dateStr;
-
+try {
 $databaseFileContent = file_get_contents("../conf/database.json");
 $loginData = json_decode($databaseFileContent, true)["mysqlConnection"];
 $host = $loginData["host"]; //connected via docker network wetter-website
@@ -18,9 +18,17 @@ $password = $loginData["password"];
 $dbname = $loginData["database"];
 $tablename = $loginData["table"];
 $port = $loginData["port"];
+} catch (Exception $e) {
+	echo 'error when reading config file&' . $e->getMessage();
+	return;
+}
 
+try {
 $conn = mysqli_connect($host, $username, $password, $dbname, $port);
-
+} catch (Exception $e) {
+	echo 'error when connecting to database&' . $e->getMessage();
+	return;
+}
 // query values
 $queryValuesString = "entryDate, $selection1" . $selection2;
 
@@ -28,12 +36,17 @@ $queryValuesString = "entryDate, $selection1" . $selection2;
 $sqlQuery = "SELECT $queryValuesString FROM $tablename WHERE entryDate BETWEEN '$start' AND '$end' ORDER BY entryDate ASC;";
 // echo $sqlQuery;
 // return;
+try {
 $result = mysqli_query($conn, $sqlQuery);
 $rows = mysqli_fetch_all($result);
+} catch (Exception $e) {
+	echo 'error when requesting data&' . $e->getMessage();
+	return;
+}
 // $rows is a two dimensional array
 
 if (sizeof($rows) <= 0) {
-	echo 'no data returned';
+	echo 'no data returned&';
 	return;
 }
 
