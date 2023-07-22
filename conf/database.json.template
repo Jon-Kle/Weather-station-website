@@ -1,0 +1,9 @@
+{
+	"mysqlConnection": {
+		"host": "",
+		"port": "",
+		"username": "",
+		"password": "",
+		"database": ""
+	}
+}
