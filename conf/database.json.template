@@ -4,6 +4,7 @@
 		"port": "",
 		"username": "",
 		"password": "",
-		"database": ""
+		"database": "",
+		"table": ""
 	}
 }
