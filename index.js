@@ -420,7 +420,7 @@ class Visualization {
         ].includes(sectionArray[0])) {
             console.log(sectionArray[0])
             if (sectionArray[0] != 'no data returned') {
-                console.log(sectionArray[1])
+                console.log('Error message: ', sectionArray[1])
             }
             return entryList;
         }
