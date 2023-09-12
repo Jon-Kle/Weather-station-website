@@ -526,64 +526,88 @@ class Visualization {
                                 entryCount--;
                                 continue;
                             }
-                            currentDay.temp = entry.temp
+                            if (!currentDay.temp) {
+                                currentDay.temp = entry.temp
+                            } else {
+                                currentDay.temp += entry.temp
+                            }
                         }
                         if (Object.keys(entry).includes('pressure')) {
                             if (!entry.pressure) {
                                 entryCount--;
                                 continue;
                             }
-                            currentDay.pressure = entry.pressure
+                            if (!currentDay.pressure) {
+                                currentDay.pressure = entry.pressure
+                            } else {
+                                currentDay.pressure += entry.pressure
+                            }
                         }
                         if (Object.keys(entry).includes('hum')) {
                             if (!entry.hum) {
                                 entryCount--;
                                 continue;
                             }
-                            currentDay.hum = entry.hum
+                            if (!currentDay.hum) {
+                                currentDay.hum = entry.hum
+                            } else {
+                                currentDay.hum += entry.hum
+                            }
                         }
                         if (Object.keys(entry).includes('windspeed')) {
                             if (!entry.windspeed) {
                                 entryCount--;
                                 continue;
                             }
-                            currentDay.windspeed = entry.windspeed
+                            if (!currentDay.windspeed) {
+                                currentDay.windspeed = entry.windspeed
+                            } else {
+                                currentDay.windspeed += entry.windspeed
+                            }
                         }
                         if (Object.keys(entry).includes('rainrate')) {
                             if (!entry.rainrate) {
                                 entryCount--;
                                 continue;
                             }
-                            currentDay.rainrate = entry.rainrate
+                            if (!currentDay.rainrate) {
+                                currentDay.rainrate = entry.rainrate
+                            } else {
+                                currentDay.rainrate += entry.rainrate
+                            }
                         }
                         if (Object.keys(entry).includes('uvindex')) {
                             if (!entry.uvindex) {
                                 entryCount--;
                                 continue;
                             }
-                            currentDay.uvindex = entry.uvindex
+                            if (!currentDay.uvindex) {
+                                currentDay.uvindex = entry.uvindex
+                            } else {
+                                currentDay.uvindex += entry.uvindex
+                            }
                         }
                     } else {
-                        if (entryCount < 47){
-                            if (Object.keys(entry).includes('temp')) {
-                                currentDay.temp = NaN
-                            }
-                            if (Object.keys(entry).includes('pressure')) {
-                                currentDay.pressure = NaN
-                            }
-                            if (Object.keys(entry).includes('hum')) {
-                                currentDay.hum = NaN
-                            }
-                            if (Object.keys(entry).includes('windspeed')) {
-                                currentDay.windspeed = NaN
-                            }
-                            if (Object.keys(entry).includes('rainrate')) {
-                                currentDay.rainrate = NaN
-                            }
-                            if (Object.keys(entry).includes('uvindex')) {
-                                currentDay.uvindex = NaN
-                            }
-                        }
+                        // if (entryCount < 47) {
+                        //     if (Object.keys(entry).includes('temp')) {
+                        //         currentDay.temp = NaN
+                        //     }
+                        //     if (Object.keys(entry).includes('pressure')) {
+                        //         currentDay.pressure = NaN
+                        //     }
+                        //     if (Object.keys(entry).includes('hum')) {
+                        //         currentDay.hum = NaN
+                        //     }
+                        //     if (Object.keys(entry).includes('windspeed')) {
+                        //         currentDay.windspeed = NaN
+                        //     }
+                        //     if (Object.keys(entry).includes('rainrate')) {
+                        //         currentDay.rainrate = NaN
+                        //     }
+                        //     if (Object.keys(entry).includes('uvindex')) {
+                        //         currentDay.uvindex = NaN
+                        //     }
+                        // }
                         if (Object.keys(entry).includes('temp')) {
                             currentDay.temp /= entryCount
                         }
