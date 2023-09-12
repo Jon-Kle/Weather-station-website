@@ -265,6 +265,15 @@ class Visualization {
                     onClick: (event, legendItem, legend) => { }, // disable all interactions with the legend
                 },
             },
+            animation: false,
+            elements: {
+                line: {
+                    borderWidth: 1
+                },
+                point: {
+                    radius: 2,
+                }
+            }
         }
     }
 
@@ -393,7 +402,7 @@ class Visualization {
         }
         let startDateStr = this.getDateStr(this.startDate)
         let endDateStr = this.getDateStr(this.endDateExtended)
-        
+
         // send request
         let requestStr = 'selection1=' + this.selection1 + '&selection2=' + secondSelectionStr + '&startDate=' + startDateStr + '&endDate=' + endDateStr;
         // console.log(requestStr)
@@ -482,11 +491,124 @@ class Visualization {
                 break;
             }
         }
+        if (entryList.length > 30000) { // limit on Size of displayed data for performance reasons
+            entryList = this.compactData(entryList, 'day'); // take average of every day and display that
+        };
         return entryList;
     }
     compareDates(date1, date2, precisionInMS) {
         let dateDiff = Math.abs(date1 - date2)
         return dateDiff <= precisionInMS ? true : false
+    }
+
+
+    compactData(entryList, mode) {
+        // this is a prime example of horrible Spagetti code, I am sorry...
+        switch (mode) {
+            case 'day':
+                const newEntries = []
+                let currentDay = {};
+                let entryCount = 0;
+                // const entry = entryList[0]
+                for (const entry of entryList) {
+                    // normalize the date to not have anything smaller than days
+                    let entryDate = entry.entryDate;
+                    entryDate.setHours(0);
+                    entryDate.setMinutes(0);
+                    let keys = Object.keys(entry) // values of the entry
+                    if (!currentDay.entryDate) {
+                        currentDay.entryDate = new Date(entryDate);
+                    }
+                    if (this.compareDates(entryDate, currentDay.entryDate, 1000)) { // if value is one of the days
+                        entryCount++;
+                        if (Object.keys(entry).includes('temp')) {
+                            if (!entry.temp) {
+                                entryCount--;
+                                continue;
+                            }
+                            currentDay.temp = entry.temp
+                        }
+                        if (Object.keys(entry).includes('pressure')) {
+                            if (!entry.pressure) {
+                                entryCount--;
+                                continue;
+                            }
+                            currentDay.pressure = entry.pressure
+                        }
+                        if (Object.keys(entry).includes('hum')) {
+                            if (!entry.hum) {
+                                entryCount--;
+                                continue;
+                            }
+                            currentDay.hum = entry.hum
+                        }
+                        if (Object.keys(entry).includes('windspeed')) {
+                            if (!entry.windspeed) {
+                                entryCount--;
+                                continue;
+                            }
+                            currentDay.windspeed = entry.windspeed
+                        }
+                        if (Object.keys(entry).includes('rainrate')) {
+                            if (!entry.rainrate) {
+                                entryCount--;
+                                continue;
+                            }
+                            currentDay.rainrate = entry.rainrate
+                        }
+                        if (Object.keys(entry).includes('uvindex')) {
+                            if (!entry.uvindex) {
+                                entryCount--;
+                                continue;
+                            }
+                            currentDay.uvindex = entry.uvindex
+                        }
+                    } else {
+                        if (entryCount < 47){
+                            if (Object.keys(entry).includes('temp')) {
+                                currentDay.temp = NaN
+                            }
+                            if (Object.keys(entry).includes('pressure')) {
+                                currentDay.pressure = NaN
+                            }
+                            if (Object.keys(entry).includes('hum')) {
+                                currentDay.hum = NaN
+                            }
+                            if (Object.keys(entry).includes('windspeed')) {
+                                currentDay.windspeed = NaN
+                            }
+                            if (Object.keys(entry).includes('rainrate')) {
+                                currentDay.rainrate = NaN
+                            }
+                            if (Object.keys(entry).includes('uvindex')) {
+                                currentDay.uvindex = NaN
+                            }
+                        }
+                        if (Object.keys(entry).includes('temp')) {
+                            currentDay.temp /= entryCount
+                        }
+                        if (Object.keys(entry).includes('pressure')) {
+                            currentDay.pressure /= entryCount
+                        }
+                        if (Object.keys(entry).includes('hum')) {
+                            currentDay.hum /= entryCount
+                        }
+                        if (Object.keys(entry).includes('windspeed')) {
+                            currentDay.windspeed /= entryCount
+                        }
+                        if (Object.keys(entry).includes('rainrate')) {
+                            currentDay.rainrate /= entryCount
+                        }
+                        if (Object.keys(entry).includes('uvindex')) {
+                            currentDay.uvindex /= entryCount
+                        }
+                        newEntries.push(currentDay)
+                        currentDay = {};
+                        entryCount = 0;
+                    }
+                }
+                return newEntries
+        }
     }
 
     // view mode
@@ -503,5 +625,5 @@ class Visualization {
         let context = document.querySelector('canvas')
         this.graph = new Chart(context, this.initialGraphData)
     }
-    createTable() {}
+    createTable() { }
 }
